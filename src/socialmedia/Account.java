@@ -1,3 +1,5 @@
+package socialmedia;
+
 public class Account{
     private String handle;
     private String description;
