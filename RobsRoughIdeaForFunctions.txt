@@ -1,0 +1,34 @@
+MiniSocialMediaPlatform interface:
+int createAccount(String handle)
+
+int createAccount(String handle) throws IllegalHandleException, InvalidHandleException;
+
+void removeAccount(int id) throws AccountIDNotRecognisedException;
+
+void changeAccountHandle(String oldHandle, String newHandle) throws HandleNotRecognisedException, IllegalHandleException, InvalidHandleException;
+
+String showAccount(String handle) throws HandleNotRecognisedException;
+
+int createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException;
+
+int endorsePost(String handle, int id) throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException;
+
+int commentPost(String handle, int id, String message) throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException, InvalidPostException;
+
+void deletePost(int id) throws PostIDNotRecognisedException;
+
+String showIndividualPost(int id) throws PostIDNotRecognisedException;
+
+StringBuilder showPostChildrenDetails(int id) throws PostIDNotRecognisedException, NotActionablePostException;
+
+int getMostEndorsedPost();
+
+int getMostEndorsedAccount();
+
+void erasePlatform();
+
+void savePlatform(String filename) throws IOException;
+
+void loadPlatform(String filename) throws IOException, ClassNotFoundException;
+
+SocialMediaPlatform interface:
