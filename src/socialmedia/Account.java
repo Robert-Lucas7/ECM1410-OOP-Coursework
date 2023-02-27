@@ -1,11 +1,14 @@
 package socialmedia;
 
-public class Account{
+import java.util.ArrayList;
+
+class Account{
     private String handle;
     private String description;
     private int accountID;
     private int postCount = 0;
     private int endorsementCount = 0;
+    private final static int MAX_HANDLE_LENGTH = 30; 
 
     public Account(String handle){
         this(handle, "");
@@ -41,6 +44,17 @@ public class Account{
     //other
     public void createPost(){
         
+    }
+    //Validation for Handle
+    public static void validHandle(String handle, ArrayList<Account> accountList) throws InvalidHandleException, IllegalHandleException{
+        if(handle.length() > MAX_HANDLE_LENGTH || handle.isEmpty() || !handle.matches("(\\S)+")){//Add check for whitespace
+            throw new InvalidHandleException();
+        }
+        for(Account a : accountList){
+            if(a.getHandle().equals(handle)){
+                throw new IllegalHandleException();
+            }
+        }
     }
 
 

@@ -1,16 +1,25 @@
 package socialmedia;
 
+import java.util.ArrayList;
+
 public class SocialMedia implements SocialMediaPlatform{
+    private ArrayList<Account> accountList = new ArrayList<Account>();
+    
     @Override
 	public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
-		// TODO Auto-generated method stub
-		return 0;
+		//Validate handle for both exceptions
+        Account.validHandle(handle, accountList);
+        Account newAccount = new Account(handle);
+        accountList.add(newAccount);
+        return newAccount.getID();
 	}
 
 	@Override
 	public int createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
-		// TODO Auto-generated method stub
-		return 0;
+		int id = createAccount(handle);
+		//Should we validate description???????????
+        accountList.get(accountList.size() -1).setDescription(description);
+		return id;
 	}
 
 	@Override
@@ -28,20 +37,66 @@ public class SocialMedia implements SocialMediaPlatform{
 	@Override
 	public void changeAccountHandle(String oldHandle, String newHandle)
 			throws HandleNotRecognisedException, IllegalHandleException, InvalidHandleException {
-		// TODO Auto-generated method stub
+		
+		//Validate handle for both exceptions
+        Account.validHandle(newHandle, accountList);
+		boolean accountFound = false;
+		for(Account a : accountList){
+			if(a.getHandle().equals(oldHandle)){
+				a.setHandle(newHandle);
+				accountFound = true;
+				break;
+			}
+		}
+		if(!accountFound){
+			throw new HandleNotRecognisedException();
+		}
 
 	}
 
 	@Override
 	public void updateAccountDescription(String handle, String description) throws HandleNotRecognisedException {
-		// TODO Auto-generated method stub
+		
+		//Validate Description????
+		boolean accountFound = false;
+		for(Account a : accountList){
+			if(a.getHandle().equals(handle)){
+				a.setDescription(description);
+				accountFound = true;
+				break;
+			}
+		}
+		if(!accountFound){
+			throw new HandleNotRecognisedException();
+		}
 
 	}
 
 	@Override
 	public String showAccount(String handle) throws HandleNotRecognisedException {
-		// TODO Auto-generated method stub
-		return null;
+		boolean accountFound = false;
+		String output = "";
+		for(Account a : accountList){
+			if(a.getHandle().equals(handle)){
+				//Create formatted string
+				output = "<pre>" +
+							"\nID: " + a.getID() +
+							"\nHandle: " + a.getHandle() +
+							"\nDescription: " + a.getDescription() +
+							"\nPost count: " + a.getPostCount() +
+							"\nEndorse count: " + a.getEndorsementCount() +
+							"\n</pre>";
+				
+				accountFound = true;
+				break;
+			}
+		}
+		if(accountFound){
+			return output;
+		}
+		else{
+			throw new HandleNotRecognisedException();
+		}
 	}
 
 	@Override

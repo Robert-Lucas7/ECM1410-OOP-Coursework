@@ -7,7 +7,7 @@ Validate handle then...
 Create new instance of account with the Account(String handle) constructor and add it to the list of accounts.
 """
 //Checking for InvalidHandleException
-if(handle.length() > system_limit_of_character OR !handle.isEmpty()){  //Unsure what this system_limit_of_characters is from documentation.
+if(handle.length() > system_limit_of_character OR handle.isEmpty()){  //Unsure what this system_limit_of_characters is from documentation.
     throw new InvalidHandleException;
 }
 //Checking for IllegalHandleException
