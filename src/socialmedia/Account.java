@@ -2,6 +2,7 @@ package socialmedia;
 
 import java.util.ArrayList;
 
+//Elliot was here
 class Account{
     private String handle;
     private String description;
