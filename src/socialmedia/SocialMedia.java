@@ -1,14 +1,21 @@
 package socialmedia;
 
 import java.util.ArrayList;
+import java.io.IOException;
 
 public class SocialMedia implements SocialMediaPlatform{
     private ArrayList<Account> accountList = new ArrayList<Account>();
+	private ArrayList<Post> postList = new ArrayList<Post>();
+	//Add number of accounts
+	//Total number of posts
+
+	//Generic empty post to replace deleted posts
+
     
     @Override
 	public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
 		//Validate handle for both exceptions
-        Account.validHandle(handle, accountList);
+        Account.validHandle(handle, accountList); //throws InvalidHandleException and IllegalHandleException
         Account newAccount = new Account(handle);
         accountList.add(newAccount);
         return newAccount.getID();
@@ -101,8 +108,11 @@ public class SocialMedia implements SocialMediaPlatform{
 
 	@Override
 	public int createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
-		// TODO Auto-generated method stub
-		return 0;
+		Account postingAccount = Account.findAccountByHandle(handle, accountList); //finds account, throws HandleNotRecognised
+		Post.validateMessage(message); //Checks message and throws up InvalidPostException
+		Post newPost = new Post(postingAccount, message);
+		postList.add(newPost);
+		return newPost.getPostID();
 	}
 
 	@Override
@@ -115,8 +125,18 @@ public class SocialMedia implements SocialMediaPlatform{
 	@Override
 	public int commentPost(String handle, int id, String message) throws HandleNotRecognisedException,
 			PostIDNotRecognisedException, NotActionablePostException, InvalidPostException {
-		// TODO Auto-generated method stub
-		return 0;
+
+		Account postingAccount = Account.findAccountByHandle(handle, accountList); //throws HandleNotRecognisedException
+		Post commentedPost = Post.findPostByID(id, postList); //throws PostIDNotRecognizedException
+		Post.validateMessage(message); //throws InvalidPostException
+
+		if (commentedPost instanceof EndorsementPost){
+			throw new NotActionablePostException();
+		}
+
+		Comment newComment = new Comment(postingAccount, message);
+		commentedPost.addComment(newComment);
+		return newComment.getPostID();
 	}
 
 	@Override

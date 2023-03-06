@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 //Elliot was here
 class Account{
+    private static int nextID = 1;
     private String handle;
     private String description;
     private int accountID;
@@ -13,10 +14,12 @@ class Account{
 
     public Account(String handle){
         this(handle, "");
+
     }
     public Account(String handle, String description){
         this.handle = handle;
         this.description = description;
+        accountID =nextID++;
     }
 
     //Getters
@@ -56,6 +59,14 @@ class Account{
                 throw new IllegalHandleException();
             }
         }
+    }
+    public static Account findAccountByHandle(String handle, ArrayList<Account> accounts) throws HandleNotRecognisedException{
+        for (Account a : accounts){
+            if (a.getHandle().equals(handle)){
+                return a;
+            }
+        }
+        throw new HandleNotRecognisedException();
     }
 
 

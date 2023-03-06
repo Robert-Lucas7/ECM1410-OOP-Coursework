@@ -33,7 +33,7 @@ public class SocialMediaPlatformTestApp {
 
 		Integer id;
 		try {
-			id = platform.createAccount("my_handle");
+			id = platform.createAccount("");
 			assert (platform.getNumberOfAccounts() == 1) : "number of accounts registered in the system does not match";
 
 			platform.removeAccount(id);
@@ -46,6 +46,8 @@ public class SocialMediaPlatformTestApp {
 		} catch (AccountIDNotRecognisedException e) {
 			assert (false) : "AccountIDNotRecognizedException thrown incorrectly";
 		}
+
+
 
 	}
 
