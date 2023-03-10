@@ -23,10 +23,10 @@ public class SocialMedia implements SocialMediaPlatform{
 
 	@Override
 	public int createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
-		int id = createAccount(handle);
-		//Should we validate description???????????
-        accountList.get(accountList.size() -1).setDescription(description);
-		return id;
+		Account.validHandle(handle, accountList); //throws InvalidHandleException and IllegalHandleException
+		Account newAccount = new Account(handle, description);
+        accountList.add(newAccount);
+        return newAccount.getID();
 	}
 
 	@Override
@@ -86,13 +86,11 @@ public class SocialMedia implements SocialMediaPlatform{
 		for(Account a : accountList){
 			if(a.getHandle().equals(handle)){
 				//Create formatted string
-				output = "<pre>" +
-							"\nID: " + a.getID() +
+				output = 	"ID: " + a.getID() +
 							"\nHandle: " + a.getHandle() +
 							"\nDescription: " + a.getDescription() +
 							"\nPost count: " + a.getPostCount() +
-							"\nEndorse count: " + a.getEndorsementCount() +
-							"\n</pre>";
+							"\nEndorse count: " + a.getEndorsementCount();
 				
 				accountFound = true;
 				break;
@@ -118,8 +116,16 @@ public class SocialMedia implements SocialMediaPlatform{
 	@Override
 	public int endorsePost(String handle, int id)
 			throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
-		// TODO Auto-generated method stub
-		return 0;
+			Account postingAccount = Account.findAccountByHandle(handle, accountList); //throws HandleNotRecognisedException
+			Post postToEndorse = Post.findPostByID(id, postList); //throws PostIDNotRecognizedException
+			//========== CAN YOU ENDORSE A COMMENT? ===========
+			if (postToEndorse instanceof EndorsementPost){
+				throw new NotActionablePostException();
+			}
+			String message = "EP@" + postToEndorse.getAccount().getHandle() + ": " + postToEndorse.getMessage();
+			EndorsementPost endorsementPost = new EndorsementPost(postingAccount, message);
+			postToEndorse.addEndorsementPost(endorsementPost);
+			return endorsementPost.getPostID();
 	}
 
 	@Override
@@ -141,14 +147,23 @@ public class SocialMedia implements SocialMediaPlatform{
 
 	@Override
 	public void deletePost(int id) throws PostIDNotRecognisedException {
-		// TODO Auto-generated method stub
-
+		Post postToDelete = Post.findPostByID(id, postList); //throws PostIDNotRecognizedException
+		postList.remove(postToDelete);
+		postToDelete.setPostToEmpty();
+		/*for(EndorsementPost e : postToDelete.getEndorsements()){
+			e.setPostToEmpty();
+		}
+		*/
+		postToDelete.getEndorsements().removeAll(postToDelete.getEndorsements()); //By passing by reference - clears the arraylist.
 	}
 
 	@Override
 	public String showIndividualPost(int id) throws PostIDNotRecognisedException {
-		// TODO Auto-generated method stub
-		return null;
+		Post postToShow = Post.findPostByID(id, postList);
+		return "ID: "+ postToShow.getPostID() +
+		"\nAccount: "+postToShow.getAccount().getHandle() +
+		"\nNo. endorsements: "+postToShow.getNumEndorsements()+" | No. comments: "+postToShow.getNumComments()+ "\n" +
+		postToShow.getMessage();
 	}
 
 	@Override
@@ -160,38 +175,52 @@ public class SocialMedia implements SocialMediaPlatform{
 
 	@Override
 	public int getNumberOfAccounts() {
-		// TODO Auto-generated method stub
-		return 0;
+		return accountList.size();
 	}
 
 	@Override
 	public int getTotalOriginalPosts() {
-		// TODO Auto-generated method stub
-		return 0;
+		return postList.size();
 	}
 
 	@Override
 	public int getTotalEndorsmentPosts() {
-		// TODO Auto-generated method stub
-		return 0;
+		int total = 0;
+		for(Post p : postList){
+			total += p.getEndorsements().size();
+		}
+		return total;
 	}
 
 	@Override
 	public int getTotalCommentPosts() {
-		// TODO Auto-generated method stub
-		return 0;
+		int total = 0;
+		for(Post p : postList){
+			total += p.getComments().size();
+		}
+		return total;
 	}
 
 	@Override
 	public int getMostEndorsedPost() {
-		// TODO Auto-generated method stub
-		return 0;
+		Post mostEndorsedPost = null;
+		for(Post p : postList){
+			if(mostEndorsedPost == null || p.getNumEndorsements() > mostEndorsedPost.getNumEndorsements()){//short-circuits so no error (Hopefully)
+				mostEndorsedPost = p;
+			}
+		}
+		return mostEndorsedPost.getPostID();
 	}
 
 	@Override
 	public int getMostEndorsedAccount() {
-		// TODO Auto-generated method stub
-		return 0;
+		Account mostEndorsedAccount = null;
+		for(Account a : accountList){
+			if(mostEndorsedAccount == null || a.getEndorsementCount() > mostEndorsedAccount.getEndorsementCount()){
+				mostEndorsedAccount = a;
+			}
+		}
+		return mostEndorsedAccount.getID();
 	}
 
 	@Override

@@ -6,14 +6,19 @@ public class Post {
     protected Account account;
     protected int postID;
     protected String message;
-    protected ArrayList<Post> comments = new ArrayList<Post>();
-    protected ArrayList<Post> endorsements = new ArrayList<Post>();
+    protected ArrayList<Comment> comments = new ArrayList<Comment>();
+    protected ArrayList<EndorsementPost> endorsements = new ArrayList<EndorsementPost>();
+    protected boolean isEmptyPost;
+
+    /*public Post(){
+        this.message = "The original content was removed from the system and is no longer available.";
+    }*/
 
     public Post(Account account, String message){
         this.message=message;
         this.account=account;
         postID=nextID++;
-
+        isEmptyPost = false;
     }
 
     //get methods
@@ -32,14 +37,29 @@ public class Post {
     public int getNumEndorsements(){
         return endorsements.size();
     }
-    public ArrayList<Post> getComments() {
+    public ArrayList<Comment> getComments() {
         return comments;
+    }
+    public ArrayList<EndorsementPost> getEndorsements() {
+        return endorsements;
+    }
+    //Setters
+    public void setMessage(String message){
+        this.message = message;
+    }
+    public void setPostToEmpty(){
+        this.isEmptyPost = true;
+        this.account = null;
+        this.message = "The original content was removed from the system and is no longer available.";
+        this.postID = -1;
     }
     //Add to lists
     public void addComment(Comment c){
         comments.add(c);
     }
-
+    public void addEndorsementPost(EndorsementPost e){
+        endorsements.add(e);
+    }
     //other
     public static void validateMessage(String message) throws InvalidPostException{
         if (message.length()>100 || message.isEmpty()){
