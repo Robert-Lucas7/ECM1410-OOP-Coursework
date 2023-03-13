@@ -1,9 +1,15 @@
 package socialmedia;
 
 import java.util.ArrayList;
+
+import javax.security.auth.callback.PasswordCallback;
+
 import java.io.IOException;
 
-public class SocialMedia implements SocialMediaPlatform{
+import java.io.Serializable;
+
+
+public class SocialMedia implements SocialMediaPlatform, Serializable{
     private ArrayList<Account> accountList = new ArrayList<Account>();
 	private ArrayList<Post> postList = new ArrayList<Post>();
 	//Add number of accounts
@@ -31,14 +37,47 @@ public class SocialMedia implements SocialMediaPlatform{
 
 	@Override
 	public void removeAccount(int id) throws AccountIDNotRecognisedException {
-		// TODO Auto-generated method stub
-
+		Account accountToDelete = Account.findAccountById(id, accountList);
+		for (Post p: postList){
+			//Remove posts
+			if (p.getAccount().getID()== id){
+				try {
+					deletePost(p.getPostID());
+				} catch (PostIDNotRecognisedException e){
+					continue;
+				}
+			}
+			//Remove endorsements
+			ArrayList<EndorsementPost> endorsementsToRemove = new ArrayList<>();
+			for (EndorsementPost e: p.getEndorsements()){
+				if (e.getAccount().getID() == id){
+					endorsementsToRemove.add(e);
+				}
+			}
+			p.getEndorsements().removeAll(endorsementsToRemove);
+			//Remove comments
+			for (Comment c: p.getComments()){ 
+				if (c.getAccount().getID()==id){
+					try {
+						deletePost(c.getPostID());
+					} catch (PostIDNotRecognisedException e){
+						continue;
+					}
+				}
+			}
+		}
+		//Remove from account list
+		accountList.remove(accountToDelete);
 	}
 
 	@Override
 	public void removeAccount(String handle) throws HandleNotRecognisedException {
-		// TODO Auto-generated method stub
-
+		Account accountToDelete = Account.findAccountByHandle(handle, accountList);
+		try{
+			removeAccount(accountToDelete.getID());
+		} catch (AccountIDNotRecognisedException e){
+			
+		}
 	}
 
 	@Override
@@ -148,13 +187,19 @@ public class SocialMedia implements SocialMediaPlatform{
 	@Override
 	public void deletePost(int id) throws PostIDNotRecognisedException {
 		Post postToDelete = Post.findPostByID(id, postList); //throws PostIDNotRecognizedException
-		postList.remove(postToDelete);
 		postToDelete.setPostToEmpty();
 		/*for(EndorsementPost e : postToDelete.getEndorsements()){
 			e.setPostToEmpty();
 		}
 		*/
-		postToDelete.getEndorsements().removeAll(postToDelete.getEndorsements()); //By passing by reference - clears the arraylist.
+		if (!(postToDelete instanceof EndorsementPost)){
+			postToDelete.getEndorsements().removeAll(postToDelete.getEndorsements()); //By passing by reference - clears the arraylist.
+			if (!(postToDelete instanceof Comment)){
+				postList.remove(postToDelete);
+			}
+		}
+		
+		
 	}
 
 	@Override
@@ -170,6 +215,18 @@ public class SocialMedia implements SocialMediaPlatform{
 	public StringBuilder showPostChildrenDetails(int id)
 			throws PostIDNotRecognisedException, NotActionablePostException {
 		// TODO Auto-generated method stub
+		StringBuilder sb = new StringBuilder();
+		Post postToShow = Post.findPostByID(id, postList);
+
+		if (postToShow instanceof EndorsementPost){
+			throw new NotActionablePostException();
+		}
+
+		sb.append(showIndividualPost(id)); 
+		for (Comment c: postToShow.getComments()){
+
+		}
+		//Come back to this
 		return null;
 	}
 
@@ -225,7 +282,10 @@ public class SocialMedia implements SocialMediaPlatform{
 
 	@Override
 	public void erasePlatform() {
-		// TODO Auto-generated method stub
+		accountList.clear();
+		postList.clear();
+		Post.resetIdCount();
+		Account.resetIdCount();
 
 	}
 

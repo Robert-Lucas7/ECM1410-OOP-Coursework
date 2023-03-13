@@ -2,8 +2,9 @@ package socialmedia;
 
 import java.util.ArrayList;
 
-//Elliot was here
-class Account{
+import java.io.Serializable;
+
+class Account implements Serializable{
     private static int nextID = 1;
     private String handle;
     private String description;
@@ -45,6 +46,9 @@ class Account{
     public void setDescription(String newDescription){
         description = newDescription;
     }
+    public static void resetIdCount(){
+        nextID = 1;
+    }
     //other
     public void createPost(){
         
@@ -67,6 +71,15 @@ class Account{
             }
         }
         throw new HandleNotRecognisedException();
+    }
+
+    public static Account findAccountById(int id, ArrayList<Account> accounts) throws AccountIDNotRecognisedException{
+        for (Account a : accounts){
+            if (a.getID()==id){
+                return a;
+            }
+        }
+        throw new AccountIDNotRecognisedException();
     }
 
 

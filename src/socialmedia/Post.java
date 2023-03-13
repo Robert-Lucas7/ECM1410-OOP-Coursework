@@ -1,7 +1,10 @@
 package socialmedia;
 
 import  java.util.ArrayList;
-public class Post {
+
+import java.io.Serializable;
+
+public class Post implements Serializable{
     protected static int nextID = 1;
     protected Account account;
     protected int postID;
@@ -52,6 +55,9 @@ public class Post {
         this.account = null;
         this.message = "The original content was removed from the system and is no longer available.";
         this.postID = -1;
+    }
+    public static void resetIdCount(){
+        nextID = 1;
     }
     //Add to lists
     public void addComment(Comment c){
