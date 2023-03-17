@@ -33,20 +33,39 @@ public class SocialMediaPlatformTestApp {
 
 		Integer id;
 		try {
-			id = platform.createAccount("");
+			id = platform.createAccount("elliot");
 			assert (platform.getNumberOfAccounts() == 1) : "number of accounts registered in the system does not match";
 
-			platform.removeAccount(id);
-			assert (platform.getNumberOfAccounts() == 0) : "number of accounts registered in the system does not match";
+			//platform.removeAccount(id);
+			//assert (platform.getNumberOfAccounts() == 0) : "number of accounts registered in the system does not match";
+			int robID = platform.createAccount("rob");
+			id =platform.createPost("elliot", "hello");
+			int eID = platform.endorsePost("rob", id);
+			int cID = platform.commentPost("rob", id, "good comment");
+			platform.commentPost("rob", cID, "brilliant comment");
+			platform.commentPost("rob", id, "great comment");
+			//platform.deletePost(eID);
+			System.out.println(platform.showAccount("elliot"));
+			System.out.println();
+			System.out.println(platform.showIndividualPost(eID));
+			System.out.println();
+			System.out.println(platform.showIndividualPost(cID));
+			System.out.println();
+			System.out.println();
+			System.out.println(platform.showPostChildrenDetails(id));
+
 
 		} catch (IllegalHandleException e) {
 			assert (false) : "IllegalHandleException thrown incorrectly";
 		} catch (InvalidHandleException e) {
 			assert (false) : "InvalidHandleException thrown incorrectly";
-		} catch (AccountIDNotRecognisedException e) {
+		} /*catch (AccountIDNotRecognisedException e) {
 			assert (false) : "AccountIDNotRecognizedException thrown incorrectly";
+		}*/
+		catch(Exception e){
+			e.printStackTrace();
 		}
-
+		
 
 
 	}

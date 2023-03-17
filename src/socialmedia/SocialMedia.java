@@ -149,6 +149,8 @@ public class SocialMedia implements SocialMediaPlatform, Serializable{
 		Post.validateMessage(message); //Checks message and throws up InvalidPostException
 		Post newPost = new Post(postingAccount, message);
 		postList.add(newPost);
+		postingAccount.getAccountPosts().add(newPost);
+		postingAccount.incrementPostCount();
 		return newPost.getPostID();
 	}
 
@@ -162,8 +164,11 @@ public class SocialMedia implements SocialMediaPlatform, Serializable{
 				throw new NotActionablePostException();
 			}
 			String message = "EP@" + postToEndorse.getAccount().getHandle() + ": " + postToEndorse.getMessage();
-			EndorsementPost endorsementPost = new EndorsementPost(postingAccount, message);
+			EndorsementPost endorsementPost = new EndorsementPost(postingAccount, message, postToEndorse);
 			postToEndorse.addEndorsementPost(endorsementPost);
+			postingAccount.setEndorsementCountUpToDateToFalse();
+			postingAccount.getAccountPosts().add(endorsementPost);
+			postList.add(endorsementPost);
 			return endorsementPost.getPostID();
 	}
 
@@ -181,23 +186,33 @@ public class SocialMedia implements SocialMediaPlatform, Serializable{
 
 		Comment newComment = new Comment(postingAccount, message);
 		commentedPost.addComment(newComment);
+		postingAccount.getAccountPosts().add(newComment);
+		postList.add(newComment);
 		return newComment.getPostID();
 	}
 
 	@Override
 	public void deletePost(int id) throws PostIDNotRecognisedException {
 		Post postToDelete = Post.findPostByID(id, postList); //throws PostIDNotRecognizedException
-		postToDelete.setPostToEmpty();
+		
 		/*for(EndorsementPost e : postToDelete.getEndorsements()){
 			e.setPostToEmpty();
 		}
 		*/
+		postList.remove(postToDelete);
+		postToDelete.getAccount().getAccountPosts().remove(postToDelete);
+		
 		if (!(postToDelete instanceof EndorsementPost)){
 			postToDelete.getEndorsements().removeAll(postToDelete.getEndorsements()); //By passing by reference - clears the arraylist.
-			if (!(postToDelete instanceof Comment)){
-				postList.remove(postToDelete);
+			if (!(postToDelete instanceof Comment)){ //If it is an original post, then ...
+				postToDelete.getAccount().decrementPostCount();
 			}
 		}
+		else{
+			postToDelete.getAccount().setEndorsementCountUpToDateToFalse();
+			((EndorsementPost)postToDelete).getReferencePost().getEndorsements().remove(postToDelete);
+		}
+		postToDelete.setPostToEmpty();
 		
 		
 	}
@@ -211,6 +226,42 @@ public class SocialMedia implements SocialMediaPlatform, Serializable{
 		postToShow.getMessage();
 	}
 
+	private StringBuilder formatMessage(String message, int indentLevel){
+		StringBuilder sb = new StringBuilder();
+		boolean firstLine = true;
+		for(String line : message.split("\n")){
+			if(firstLine){
+				String temp = "\t".repeat(indentLevel)+ "| > "+line+"\n";
+				//remove tab here
+				firstLine = false;
+			}
+			else{
+				sb.append("\t".repeat(indentLevel)+line+"\n");
+			}
+		}
+		return sb;
+	}
+	private StringBuilder DFSChildren(Post post, int indent, StringBuilder sb, ArrayList<Post> visited) throws PostIDNotRecognisedException{
+		visited.add(post);
+		//Add indentation and pipes here...
+		if(!(post instanceof Comment)){
+			sb.append(formatMessage(showIndividualPost(post.getPostID()), indent));
+		}	
+		else{
+			sb.append(showIndividualPost(post.getPostID()));
+		}
+		System.out.println("Indent: "+indent+", PostID: "+post.getPostID());
+		indent++;
+		for(Comment c:post.getComments()){
+			if(!visited.contains(c)){//upcasting
+				
+				DFSChildren(c, indent, sb, visited);
+			}
+		}
+		return sb;
+	}
+
+
 	@Override
 	public StringBuilder showPostChildrenDetails(int id)
 			throws PostIDNotRecognisedException, NotActionablePostException {
@@ -222,12 +273,12 @@ public class SocialMedia implements SocialMediaPlatform, Serializable{
 			throw new NotActionablePostException();
 		}
 
-		sb.append(showIndividualPost(id)); 
+		/*sb.append(showIndividualPost(id)); 
 		for (Comment c: postToShow.getComments()){
 
-		}
+		}*/
 		//Come back to this
-		return null;
+		return DFSChildren(postToShow, 0,sb,new ArrayList<Post>());
 	}
 
 	@Override

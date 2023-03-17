@@ -11,7 +11,10 @@ class Account implements Serializable{
     private int accountID;
     private int postCount = 0;
     private int endorsementCount = 0;
+    private boolean endorsementCountUpToDate = false;
     private final static int MAX_HANDLE_LENGTH = 30; 
+
+    private ArrayList<Post> accountPosts = new ArrayList<Post>();//All posts - original, comments, endorsements.
 
     public Account(String handle){
         this(handle, "");
@@ -36,9 +39,21 @@ class Account implements Serializable{
     public int getPostCount(){
         return postCount;
     }
-    public int getEndorsementCount(){
+    public int getEndorsementCount(){//using caching
+        if(!endorsementCountUpToDate){
+            //count the number of endorsements
+            int total = 0;
+            for(Post p:accountPosts){
+                total += p.getNumEndorsements();
+            }
+            endorsementCount = total;
+            endorsementCountUpToDate = true;
+        }
         return endorsementCount;
     }
+    public ArrayList<Post> getAccountPosts(){
+        return this.accountPosts;
+    } 
     //Setters
     public void setHandle(String newHandle){
         handle = newHandle;
@@ -48,6 +63,15 @@ class Account implements Serializable{
     }
     public static void resetIdCount(){
         nextID = 1;
+    }
+    public void incrementPostCount(){
+        this.postCount++;
+    }
+    public void decrementPostCount(){
+        this.postCount--;
+    }
+    public void setEndorsementCountUpToDateToFalse(){
+        this.endorsementCountUpToDate = false;
     }
     //other
     public void createPost(){
