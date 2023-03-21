@@ -39,20 +39,30 @@ public class SocialMediaPlatformTestApp {
 			//platform.removeAccount(id);
 			//assert (platform.getNumberOfAccounts() == 0) : "number of accounts registered in the system does not match";
 			int robID = platform.createAccount("rob");
-			id =platform.createPost("elliot", "hello");
-			int eID = platform.endorsePost("rob", id);
+			id = platform.createPost("elliot", "hello");
+			//int eID = platform.endorsePost("rob", id);
 			int cID = platform.commentPost("rob", id, "good comment");
 			platform.commentPost("rob", cID, "brilliant comment");
 			platform.commentPost("rob", id, "great comment");
 			//platform.deletePost(eID);
 			System.out.println(platform.showAccount("elliot"));
 			System.out.println();
-			System.out.println(platform.showIndividualPost(eID));
+			//System.out.println(platform.showIndividualPost(eID));
 			System.out.println();
-			System.out.println(platform.showIndividualPost(cID));
+			//System.out.println(platform.showIndividualPost(cID));
 			System.out.println();
 			System.out.println();
 			System.out.println(platform.showPostChildrenDetails(id));
+
+			/* Saving and loading platform
+
+			platform.savePlatform("saved.ser");
+			System.out.println("Saved");
+			platform.erasePlatform();
+			platform.loadPlatform("saved.ser");
+			System.out.println("Loaded");
+			System.out.println(platform.showAccount("elliot"));
+			 */
 
 
 		} catch (IllegalHandleException e) {

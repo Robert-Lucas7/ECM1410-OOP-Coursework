@@ -1,15 +1,10 @@
 package socialmedia;
 
 import java.util.ArrayList;
-
-import javax.security.auth.callback.PasswordCallback;
-
-import java.io.IOException;
-
-import java.io.Serializable;
+import java.io.*;
 
 
-public class SocialMedia implements SocialMediaPlatform, Serializable{
+public class SocialMedia implements SocialMediaPlatform {
     private ArrayList<Account> accountList = new ArrayList<Account>();
 	private ArrayList<Post> postList = new ArrayList<Post>();
 	//Add number of accounts
@@ -184,7 +179,7 @@ public class SocialMedia implements SocialMediaPlatform, Serializable{
 			throw new NotActionablePostException();
 		}
 
-		Comment newComment = new Comment(postingAccount, message);
+		Comment newComment = new Comment(postingAccount, message, commentedPost);
 		commentedPost.addComment(newComment);
 		postingAccount.getAccountPosts().add(newComment);
 		postList.add(newComment);
@@ -226,36 +221,48 @@ public class SocialMedia implements SocialMediaPlatform, Serializable{
 		postToShow.getMessage();
 	}
 
-	private StringBuilder formatMessage(String message, int indentLevel){
+	private StringBuilder formatMessage(String message, int indentLevel, boolean isFirstComment){
 		StringBuilder sb = new StringBuilder();
-		boolean firstLine = true;
+		boolean isFirstLine = true;
 		for(String line : message.split("\n")){
-			if(firstLine){
-				String temp = "\t".repeat(indentLevel)+ "| > "+line+"\n";
+			if(isFirstLine){
+				String firstLine = "";
+				if (indentLevel != 0 && isFirstComment){
+					firstLine += "    ".repeat(indentLevel-1)+ "|\n";
+				}
+				sb.append(firstLine+"    ".repeat(indentLevel-1)+"| > "+line+"\n");
+				
 				//remove tab here
-				firstLine = false;
+				isFirstLine = false;
 			}
 			else{
-				sb.append("\t".repeat(indentLevel)+line+"\n");
+				sb.append("    ".repeat(indentLevel)+line+"\n");
 			}
 		}
 		return sb;
 	}
-	private StringBuilder DFSChildren(Post post, int indent, StringBuilder sb, ArrayList<Post> visited) throws PostIDNotRecognisedException{
+	private StringBuilder DFSChildren(Post originalPost, Post post, int indent, StringBuilder sb, ArrayList<Post> visited) throws PostIDNotRecognisedException{
 		visited.add(post);
+
 		//Add indentation and pipes here...
-		if(!(post instanceof Comment)){
-			sb.append(formatMessage(showIndividualPost(post.getPostID()), indent));
+		if(post instanceof Comment){
+			if (((Comment) post).getReferencePost().getComments().get(0).equals(post)){
+				sb.append(formatMessage(showIndividualPost(post.getPostID()), indent, true));
+			} else{
+				sb.append(formatMessage(showIndividualPost(post.getPostID()), indent, false));
+			}
+			
 		}	
 		else{
-			sb.append(showIndividualPost(post.getPostID()));
+			sb.append(showIndividualPost(post.getPostID())+"\n");
 		}
 		System.out.println("Indent: "+indent+", PostID: "+post.getPostID());
 		indent++;
+
 		for(Comment c:post.getComments()){
 			if(!visited.contains(c)){//upcasting
 				
-				DFSChildren(c, indent, sb, visited);
+				DFSChildren(originalPost, c, indent, sb, visited);
 			}
 		}
 		return sb;
@@ -265,7 +272,6 @@ public class SocialMedia implements SocialMediaPlatform, Serializable{
 	@Override
 	public StringBuilder showPostChildrenDetails(int id)
 			throws PostIDNotRecognisedException, NotActionablePostException {
-		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder();
 		Post postToShow = Post.findPostByID(id, postList);
 
@@ -278,7 +284,7 @@ public class SocialMedia implements SocialMediaPlatform, Serializable{
 
 		}*/
 		//Come back to this
-		return DFSChildren(postToShow, 0,sb,new ArrayList<Post>());
+		return DFSChildren(postToShow, postToShow, 0,sb,new ArrayList<Post>());
 	}
 
 	@Override
@@ -342,13 +348,29 @@ public class SocialMedia implements SocialMediaPlatform, Serializable{
 
 	@Override
 	public void savePlatform(String filename) throws IOException {
-		// TODO Auto-generated method stub
-
+		try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))){
+			out.writeObject(accountList);
+			out.writeObject(postList);
+		}
 	}
 
 	@Override
-	public void loadPlatform(String filename) throws IOException, ClassNotFoundException {
-		// TODO Auto-generated method stub
 
+	public void loadPlatform(String filename) throws IOException, ClassNotFoundException {
+		try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))){
+			ArrayList obj = (ArrayList) in.readObject();
+			if ((obj.size()>0) && (obj.get(0) instanceof Account)){
+				accountList = (ArrayList<Account>) obj;
+			} else {
+				throw new ClassNotFoundException();
+			}
+			
+			obj = (ArrayList) in.readObject();
+			if ((obj.size()>0) && (obj.get(0) instanceof Post)){
+				postList = (ArrayList<Post>) obj;
+			} else {
+				throw new ClassNotFoundException();
+			}
+		} 
 	}
 }
