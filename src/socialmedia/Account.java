@@ -15,6 +15,7 @@ class Account implements Serializable{
     private final static int MAX_HANDLE_LENGTH = 30; 
 
     private ArrayList<Post> accountPosts = new ArrayList<Post>();//All posts - original, comments, endorsements.
+    
 
     public Account(String handle){
         this(handle, "");
@@ -23,7 +24,7 @@ class Account implements Serializable{
     public Account(String handle, String description){
         this.handle = handle;
         this.description = description;
-        accountID =nextID++;
+        accountID = nextID++;
     }
 
     //Getters
@@ -39,7 +40,7 @@ class Account implements Serializable{
     public int getPostCount(){
         return postCount;
     }
-    public int getEndorsementCount(){//using caching
+    public int getEndorsementCount(){//using caching OR Lazy instantiation??
         if(!endorsementCountUpToDate){
             //count the number of endorsements
             int total = 0;
@@ -51,9 +52,10 @@ class Account implements Serializable{
         }
         return endorsementCount;
     }
-    public ArrayList<Post> getAccountPosts(){
+    public ArrayList<Post> getPosts(){
         return this.accountPosts;
     } 
+    
     //Setters
     public void setHandle(String newHandle){
         handle = newHandle;
@@ -64,21 +66,26 @@ class Account implements Serializable{
     public static void resetIdCount(){
         nextID = 1;
     }
+    /*
     public void incrementPostCount(){
         this.postCount++;
     }
     public void decrementPostCount(){
         this.postCount--;
     }
+    */
     public void setEndorsementCountUpToDateToFalse(){
         this.endorsementCountUpToDate = false;
     }
     //other
-    public void createPost(){
-        
+    public void addPost(Post p){
+        this.accountPosts.add(p);
+    }
+    public void removePost(Post p){
+        this.accountPosts.remove(p);
     }
     //Validation for Handle
-    public static void validHandle(String handle, ArrayList<Account> accountList) throws InvalidHandleException, IllegalHandleException{
+    public static void validateHandle(String handle, ArrayList<Account> accountList) throws InvalidHandleException, IllegalHandleException{
         if(handle.length() > MAX_HANDLE_LENGTH || handle.isEmpty() || !handle.matches("(\\S)+")){//Add check for whitespace
             throw new InvalidHandleException();
         }
@@ -99,7 +106,7 @@ class Account implements Serializable{
 
     public static Account findAccountById(int id, ArrayList<Account> accounts) throws AccountIDNotRecognisedException{
         for (Account a : accounts){
-            if (a.getID()==id){
+            if (a.getID() == id){
                 return a;
             }
         }

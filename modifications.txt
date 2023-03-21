@@ -1,0 +1,37 @@
+*All functions should be camelCase starting with a lowercase letter beginning with a verb*
+I would like to remove postList and just use the postList contained within each account, as there are duplicate posts stored for little reason.
+
+
+Account.ValidHandle()
+Change !handle.matches("(\\S)+") (non-whitespace character) to just handle.matches("(\\s)+") (white-space character)
+Change function name from Account.ValidHandle() to validateHandle()
+
+Can you compare primitive values with '=='? (Pretty sure yes)
+
+Change post.getPostID() to post.getID()
+
+SocialMedia.removeAccount(int id)
+Iterating over postList will have the same number of operations as iterating over each account and then iterating over all of the accountPosts.
+Change:
+for (Post p:postList){...}
+
+to:
+for(Post p : accountToDelete.getPosts()){
+    deletePost(p.getID());
+    ...
+}
+Changed Account.getAccountPosts() to Account.getPosts().
+Added clearEndorsements() - this empties the endorsement arraylist associated with the post.
+
+
+Are our endorsements transitive?? if B endorses A and C endorses B, then C should point to A not B.
+
+
+createPost(String handle, String message){}
+would prefer an explicit method to add a post to AccountPosts. addPost(Post p) method.
+Don't need postingAccount.incrementPostCount(), as the postCount is just the size of the accountPosts ArrayList.
+
+endorsePost(String handle, int id){}
+Shouldn't the postToEndorse's account be the one that the setEndorsementCountUpToDateToFalse() is called on
+
+============ GOT TO deletePost METHOD =======================

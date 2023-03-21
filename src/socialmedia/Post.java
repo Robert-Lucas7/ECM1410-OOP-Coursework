@@ -10,7 +10,7 @@ public class Post implements Serializable{
     protected int postID;
     protected String message;
     protected ArrayList<Comment> comments = new ArrayList<Comment>();
-    protected ArrayList<EndorsementPost> endorsements = new ArrayList<EndorsementPost>();
+    protected ArrayList<EndorsementPost> endorsements = new ArrayList<EndorsementPost>(); //posts endorsing this instance of a post.
     protected boolean isEmptyPost;
 
     /*public Post(){
@@ -28,7 +28,7 @@ public class Post implements Serializable{
     public Account getAccount(){
         return account;
     }
-    public int getPostID(){
+    public int getID(){
         return postID;
     }
     public String getMessage(){
@@ -67,15 +67,20 @@ public class Post implements Serializable{
         endorsements.add(e);
     }
     //other
+    public void clearEndorsements(){
+        this.endorsements.clear();
+    }
     public static void validateMessage(String message) throws InvalidPostException{
         if (message.length()>100 || message.isEmpty()){
             throw new InvalidPostException();
         }
     }
-    public static Post findPostByID(int id, ArrayList<Post> posts) throws PostIDNotRecognisedException{
-        for (Post p : posts){
-            if (p.getPostID() == id){
-                return p;
+    public static Post findPostByID(int id, ArrayList<Account> accountList) throws PostIDNotRecognisedException{
+        for (Account a : accountList){
+            for(Post p : a.getPosts()){
+                if (p.getID() == id){
+                    return p;
+                }
             }
             
         }

@@ -16,7 +16,7 @@ public class SocialMedia implements SocialMediaPlatform {
     @Override
 	public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
 		//Validate handle for both exceptions
-        Account.validHandle(handle, accountList); //throws InvalidHandleException and IllegalHandleException
+        Account.validateHandle(handle, accountList); //throws InvalidHandleException and IllegalHandleException
         Account newAccount = new Account(handle);
         accountList.add(newAccount);
         return newAccount.getID();
@@ -24,7 +24,7 @@ public class SocialMedia implements SocialMediaPlatform {
 
 	@Override
 	public int createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
-		Account.validHandle(handle, accountList); //throws InvalidHandleException and IllegalHandleException
+		Account.validateHandle(handle, accountList); //throws InvalidHandleException and IllegalHandleException
 		Account newAccount = new Account(handle, description);
         accountList.add(newAccount);
         return newAccount.getID();
@@ -33,30 +33,26 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public void removeAccount(int id) throws AccountIDNotRecognisedException {
 		Account accountToDelete = Account.findAccountById(id, accountList);
-		for (Post p: postList){
+		for (Post p: accountToDelete.getPosts()){
 			//Remove posts
-			if (p.getAccount().getID()== id){
-				try {
-					deletePost(p.getPostID());
-				} catch (PostIDNotRecognisedException e){
-					continue;
-				}
+			try{
+				deletePost(p.getPostID());
+			} catch(PostIDNotRecognisedException e){
+				continue;
 			}
-			//Remove endorsements
-			ArrayList<EndorsementPost> endorsementsToRemove = new ArrayList<>();
-			for (EndorsementPost e: p.getEndorsements()){
-				if (e.getAccount().getID() == id){
-					endorsementsToRemove.add(e);
-				}
-			}
-			p.getEndorsements().removeAll(endorsementsToRemove);
-			//Remove comments
-			for (Comment c: p.getComments()){ 
-				if (c.getAccount().getID()==id){
-					try {
-						deletePost(c.getPostID());
-					} catch (PostIDNotRecognisedException e){
-						continue;
+			//have a function to clear the endorsement list.
+			p.clearEndorsements();
+		}
+		for(Account a: accountList){
+			for(Post p : a.getPosts()){
+				if(p instanceof Comment){
+					Comment c = (Comment)p;
+					if(accountToDelete.getPosts().contains(c.getReferencePost())){//if a comment is referencing a post that belongs to the accountToBeRemoved, then it should be removed/deleted.
+						try {
+							deletePost(c.getPostID());
+						} catch (PostIDNotRecognisedException e){
+							continue;
+						}
 					}
 				}
 			}
@@ -70,7 +66,7 @@ public class SocialMedia implements SocialMediaPlatform {
 		Account accountToDelete = Account.findAccountByHandle(handle, accountList);
 		try{
 			removeAccount(accountToDelete.getID());
-		} catch (AccountIDNotRecognisedException e){
+		} catch (AccountIDNotRecognisedException e){//HOW SHOULD THIS BE HANDLED?
 			
 		}
 	}
@@ -80,7 +76,7 @@ public class SocialMedia implements SocialMediaPlatform {
 			throws HandleNotRecognisedException, IllegalHandleException, InvalidHandleException {
 		
 		//Validate handle for both exceptions
-        Account.validHandle(newHandle, accountList);
+        Account.validateHandle(newHandle, accountList);
 		boolean accountFound = false;
 		for(Account a : accountList){
 			if(a.getHandle().equals(oldHandle)){
@@ -143,17 +139,15 @@ public class SocialMedia implements SocialMediaPlatform {
 		Account postingAccount = Account.findAccountByHandle(handle, accountList); //finds account, throws HandleNotRecognised
 		Post.validateMessage(message); //Checks message and throws up InvalidPostException
 		Post newPost = new Post(postingAccount, message);
-		postList.add(newPost);
-		postingAccount.getAccountPosts().add(newPost);
-		postingAccount.incrementPostCount();
-		return newPost.getPostID();
+		postingAccount.addPost(newPost);
+		return newPost.getID();
 	}
 
 	@Override
 	public int endorsePost(String handle, int id)
 			throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
 			Account postingAccount = Account.findAccountByHandle(handle, accountList); //throws HandleNotRecognisedException
-			Post postToEndorse = Post.findPostByID(id, postList); //throws PostIDNotRecognizedException
+			Post postToEndorse = Post.findPostByID(id, accountList); //throws PostIDNotRecognizedException
 			//========== CAN YOU ENDORSE A COMMENT? ===========
 			if (postToEndorse instanceof EndorsementPost){
 				throw new NotActionablePostException();
@@ -161,10 +155,9 @@ public class SocialMedia implements SocialMediaPlatform {
 			String message = "EP@" + postToEndorse.getAccount().getHandle() + ": " + postToEndorse.getMessage();
 			EndorsementPost endorsementPost = new EndorsementPost(postingAccount, message, postToEndorse);
 			postToEndorse.addEndorsementPost(endorsementPost);
-			postingAccount.setEndorsementCountUpToDateToFalse();
-			postingAccount.getAccountPosts().add(endorsementPost);
-			postList.add(endorsementPost);
-			return endorsementPost.getPostID();
+			postToEndorse.getAccount().setEndorsementCountUpToDateToFalse();//postingAccount.setEndorsementCountUpToDateToFalse();
+			postingAccount.addPost(endorsementPost);
+			return endorsementPost.getID();
 	}
 
 	@Override
@@ -172,7 +165,7 @@ public class SocialMedia implements SocialMediaPlatform {
 			PostIDNotRecognisedException, NotActionablePostException, InvalidPostException {
 
 		Account postingAccount = Account.findAccountByHandle(handle, accountList); //throws HandleNotRecognisedException
-		Post commentedPost = Post.findPostByID(id, postList); //throws PostIDNotRecognizedException
+		Post commentedPost = Post.findPostByID(id, accountList); //throws PostIDNotRecognizedException
 		Post.validateMessage(message); //throws InvalidPostException
 
 		if (commentedPost instanceof EndorsementPost){
@@ -181,26 +174,21 @@ public class SocialMedia implements SocialMediaPlatform {
 
 		Comment newComment = new Comment(postingAccount, message, commentedPost);
 		commentedPost.addComment(newComment);
-		postingAccount.getAccountPosts().add(newComment);
-		postList.add(newComment);
-		return newComment.getPostID();
+		postingAccount.addPost(newComment);
+		return newComment.getID();
 	}
 
 	@Override
 	public void deletePost(int id) throws PostIDNotRecognisedException {
-		Post postToDelete = Post.findPostByID(id, postList); //throws PostIDNotRecognizedException
+		Post postToDelete = Post.findPostByID(id, accountList); //throws PostIDNotRecognizedException
 		
-		/*for(EndorsementPost e : postToDelete.getEndorsements()){
-			e.setPostToEmpty();
-		}
-		*/
-		postList.remove(postToDelete);
-		postToDelete.getAccount().getAccountPosts().remove(postToDelete);
+		
+		postToDelete.getAccount().removePost(postToDelete);
 		
 		if (!(postToDelete instanceof EndorsementPost)){
 			postToDelete.getEndorsements().removeAll(postToDelete.getEndorsements()); //By passing by reference - clears the arraylist.
 			if (!(postToDelete instanceof Comment)){ //If it is an original post, then ...
-				postToDelete.getAccount().decrementPostCount();
+				//postToDelete.getAccount().decrementPostCount();//This is not needed!!
 			}
 		}
 		else{
