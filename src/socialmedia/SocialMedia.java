@@ -36,7 +36,7 @@ public class SocialMedia implements SocialMediaPlatform {
 		for (Post p: accountToDelete.getPosts()){
 			//Remove posts
 			try{
-				deletePost(p.getPostID());
+				deletePost(p.getID());
 			} catch(PostIDNotRecognisedException e){
 				continue;
 			}
@@ -49,7 +49,7 @@ public class SocialMedia implements SocialMediaPlatform {
 					Comment c = (Comment)p;
 					if(accountToDelete.getPosts().contains(c.getReferencePost())){//if a comment is referencing a post that belongs to the accountToBeRemoved, then it should be removed/deleted.
 						try {
-							deletePost(c.getPostID());
+							deletePost(c.getID());
 						} catch (PostIDNotRecognisedException e){
 							continue;
 						}
@@ -63,11 +63,11 @@ public class SocialMedia implements SocialMediaPlatform {
 
 	@Override
 	public void removeAccount(String handle) throws HandleNotRecognisedException {
-		Account accountToDelete = Account.findAccountByHandle(handle, accountList);
+		Account accountToDelete = Account.findAccountByHandle(handle, accountList);//Throws HandleNotRecognised exception
 		try{
 			removeAccount(accountToDelete.getID());
 		} catch (AccountIDNotRecognisedException e){//HOW SHOULD THIS BE HANDLED?
-			
+			//This will never execute, as if the account doesn
 		}
 	}
 
@@ -202,8 +202,8 @@ public class SocialMedia implements SocialMediaPlatform {
 
 	@Override
 	public String showIndividualPost(int id) throws PostIDNotRecognisedException {
-		Post postToShow = Post.findPostByID(id, postList);
-		return "ID: "+ postToShow.getPostID() +
+		Post postToShow = Post.findPostByID(id, accountList);
+		return "ID: "+ postToShow.getID() +
 		"\nAccount: "+postToShow.getAccount().getHandle() +
 		"\nNo. endorsements: "+postToShow.getNumEndorsements()+" | No. comments: "+postToShow.getNumComments()+ "\n" +
 		postToShow.getMessage();
@@ -235,16 +235,16 @@ public class SocialMedia implements SocialMediaPlatform {
 		//Add indentation and pipes here...
 		if(post instanceof Comment){
 			if (((Comment) post).getReferencePost().getComments().get(0).equals(post)){
-				sb.append(formatMessage(showIndividualPost(post.getPostID()), indent, true));
+				sb.append(formatMessage(showIndividualPost(post.getID()), indent, true));
 			} else{
-				sb.append(formatMessage(showIndividualPost(post.getPostID()), indent, false));
+				sb.append(formatMessage(showIndividualPost(post.getID()), indent, false));
 			}
 			
 		}	
 		else{
-			sb.append(showIndividualPost(post.getPostID())+"\n");
+			sb.append(showIndividualPost(post.getID())+"\n");
 		}
-		System.out.println("Indent: "+indent+", PostID: "+post.getPostID());
+		System.out.println("Indent: "+indent+", PostID: "+post.getID());
 		indent++;
 
 		for(Comment c:post.getComments()){
@@ -261,7 +261,7 @@ public class SocialMedia implements SocialMediaPlatform {
 	public StringBuilder showPostChildrenDetails(int id)
 			throws PostIDNotRecognisedException, NotActionablePostException {
 		StringBuilder sb = new StringBuilder();
-		Post postToShow = Post.findPostByID(id, postList);
+		Post postToShow = Post.findPostByID(id, accountList);
 
 		if (postToShow instanceof EndorsementPost){
 			throw new NotActionablePostException();
@@ -311,7 +311,7 @@ public class SocialMedia implements SocialMediaPlatform {
 				mostEndorsedPost = p;
 			}
 		}
-		return mostEndorsedPost.getPostID();
+		return mostEndorsedPost.getID();
 	}
 
 	@Override
