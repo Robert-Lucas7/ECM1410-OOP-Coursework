@@ -13,7 +13,9 @@ public class SocialMedia implements SocialMediaPlatform {
 		//Validate handle for both exceptions
         Account.validateHandle(handle, accountList); //throws InvalidHandleException and IllegalHandleException
         Account newAccount = new Account(handle);
+		int numOfAccounts = getNumberOfAccounts();
         accountList.add(newAccount);
+		assert (numOfAccounts + 1 == getNumberOfAccounts()) : "Number of accounts has not increased.";
         return newAccount.getID();
 	}
 
@@ -21,13 +23,16 @@ public class SocialMedia implements SocialMediaPlatform {
 	public int createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
 		Account.validateHandle(handle, accountList); //throws InvalidHandleException and IllegalHandleException
 		Account newAccount = new Account(handle, description);
+		int numOfAccounts = getNumberOfAccounts();
         accountList.add(newAccount);
+		assert (numOfAccounts + 1 == getNumberOfAccounts()) : "Number of accounts has not increased.";
         return newAccount.getID();
 	}
 
 	@Override
 	public void removeAccount(int id) throws AccountIDNotRecognisedException {
 		Account accountToDelete = Account.findAccountById(id, accountList);
+		int numOfAccounts = getNumberOfAccounts();
 		for (Post p: accountToDelete.getPosts()){
 			//Remove posts
 			try{
@@ -35,8 +40,6 @@ public class SocialMedia implements SocialMediaPlatform {
 			} catch(PostIDNotRecognisedException e){
 				continue;
 			}
-			//have a function to clear the endorsement list.
-			p.clearEndorsements();
 		}
 		for(Account a: accountList){
 			for(Post p : a.getPosts()){
@@ -54,6 +57,7 @@ public class SocialMedia implements SocialMediaPlatform {
 		}
 		//Remove from account list
 		accountList.remove(accountToDelete);
+		assert (numOfAccounts - 1 == getNumberOfAccounts()) : "Number of accounts has not decreased.";
 	}
 
 	@Override
@@ -72,61 +76,23 @@ public class SocialMedia implements SocialMediaPlatform {
 		
 		//Validate handle for both exceptions
         Account.validateHandle(newHandle, accountList);
-		boolean accountFound = false;
-		for(Account a : accountList){
-			if(a.getHandle().equals(oldHandle)){
-				a.setHandle(newHandle);
-				accountFound = true;
-				break;
-			}
-		}
-		if(!accountFound){
-			throw new HandleNotRecognisedException();
-		}
+		Account account = Account.findAccountByHandle(oldHandle, accountList);
+		account.setHandle(newHandle);
+		assert (account.getHandle() == newHandle) : "Handle has not updated.";
 
 	}
 
 	@Override
 	public void updateAccountDescription(String handle, String description) throws HandleNotRecognisedException {
-		
-		//Validate Description????
-		boolean accountFound = false;
-		for(Account a : accountList){
-			if(a.getHandle().equals(handle)){
-				a.setDescription(description);
-				accountFound = true;
-				break;
-			}
-		}
-		if(!accountFound){
-			throw new HandleNotRecognisedException();
-		}
-
+		Account account = Account.findAccountByHandle(handle, accountList);
+		account.setDescription(description);
+		assert (account.getDescription() == description):"Description has not updated.";
 	}
 
 	@Override
 	public String showAccount(String handle) throws HandleNotRecognisedException {
-		boolean accountFound = false;
-		String output = "";
-		for(Account a : accountList){
-			if(a.getHandle().equals(handle)){
-				//Create formatted string
-				output = 	"ID: " + a.getID() +
-							"\nHandle: " + a.getHandle() +
-							"\nDescription: " + a.getDescription() +
-							"\nPost count: " + a.getPosts().size() +
-							"\nEndorse count: " + a.getEndorsementCount();
-				
-				accountFound = true;
-				break;
-			}
-		}
-		if(accountFound){
-			return output;
-		}
-		else{
-			throw new HandleNotRecognisedException();
-		}
+		Account account = Account.findAccountByHandle(handle, accountList);
+		return account.toString();
 	}
 
 	@Override
@@ -134,7 +100,10 @@ public class SocialMedia implements SocialMediaPlatform {
 		Account postingAccount = Account.findAccountByHandle(handle, accountList); //finds account, throws HandleNotRecognised
 		Post.validateMessage(message); //Checks message and throws up InvalidPostException
 		Post newPost = new Post(postingAccount, message);
+		int numOfAccountPosts = postingAccount.getPosts().size();
 		postingAccount.addPost(newPost);
+		assert (numOfAccountPosts + 1 == postingAccount.getPosts().size()):"Account post count not updated.";
+		
 		return newPost.getID();
 	}
 
@@ -143,15 +112,15 @@ public class SocialMedia implements SocialMediaPlatform {
 			throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
 			Account postingAccount = Account.findAccountByHandle(handle, accountList); //throws HandleNotRecognisedException
 			Post postToEndorse = Post.findPostByID(id, accountList); //throws PostIDNotRecognizedException
-			//========== CAN YOU ENDORSE A COMMENT? ===========
 			if (postToEndorse instanceof EndorsementPost){
 				throw new NotActionablePostException();
 			}
 			String message = "EP@" + postToEndorse.getAccount().getHandle() + ": " + postToEndorse.getMessage();
+
+			int numOfEndorsements = getTotalEndorsmentPosts();
 			EndorsementPost endorsementPost = new EndorsementPost(postingAccount, message, postToEndorse);
-			postToEndorse.addEndorsementPost(endorsementPost);
-			postToEndorse.getAccount().setEndorsementCountUpToDateToFalse();//postingAccount.setEndorsementCountUpToDateToFalse();
-			postingAccount.addPost(endorsementPost);
+			assert (postToEndorse.getEndorsements().contains(endorsementPost)):"Endorsement post not added to list of endorsements.";
+			assert (numOfEndorsements + 1 == getTotalEndorsmentPosts()):"Number of endorsement posts has not increased.";
 			return endorsementPost.getID();
 	}
 
@@ -167,9 +136,10 @@ public class SocialMedia implements SocialMediaPlatform {
 			throw new NotActionablePostException();
 		}
 
+		int numOfComments = getTotalCommentPosts();
 		Comment newComment = new Comment(postingAccount, message, commentedPost);
-		commentedPost.addComment(newComment);
-		postingAccount.addPost(newComment);
+		assert (commentedPost.getComments().contains(newComment)):"Comment post not added to comment list.";
+		assert (numOfComments + 1 == getTotalCommentPosts()):"Number of comment posts has not increased.";
 		return newComment.getID();
 	}
 

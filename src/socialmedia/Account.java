@@ -17,7 +17,6 @@ class Account implements Serializable{
 
     private ArrayList<Post> accountPosts = new ArrayList<Post>();//All posts - original, comments, endorsements.
     
-
     public Account(String handle){
         this(handle, "");
 
@@ -28,7 +27,6 @@ class Account implements Serializable{
         accountID = nextID++;
     }
 
-    //Getters
     public String getHandle(){
         return handle;
     }
@@ -89,6 +87,14 @@ class Account implements Serializable{
     public void removePost(Post p){
         this.accountPosts.remove(p);
         postCountUpToDate = false;
+    }
+    @Override
+    public String toString(){
+        return	"ID: " + accountID +
+                "\nHandle: " + handle +
+                "\nDescription: " + description +
+                "\nPost count: " + accountPosts.size() +
+                "\nEndorse count: " + getEndorsementCount();
     }
     //Validation for Handle
     public static void validateHandle(String handle, ArrayList<Account> accountList) throws InvalidHandleException, IllegalHandleException{

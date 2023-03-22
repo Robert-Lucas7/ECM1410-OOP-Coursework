@@ -6,6 +6,9 @@ public class EndorsementPost extends Post{
     public EndorsementPost(Account account, String message, Post referencePost) {
         super(account, message);
         this.referencePost = referencePost;
+        referencePost.addEndorsementPost(this);
+		referencePost.getAccount().setEndorsementCountUpToDateToFalse();//postingAccount.setEndorsementCountUpToDateToFalse();
+		account.addPost(this);
     }
     public Post getReferencePost(){
         return this.referencePost;

@@ -56,6 +56,8 @@ public class SocialMediaPlatformTestApp {
 			platform.endorsePost("elliot", 5);
 			System.out.println(platform.showPostChildrenDetails(id));
 
+			platform.updateAccountDescription("elliot", "I'm not smelly");
+			platform.changeAccountHandle("elliot", "smelliot");
 			///Saving and loading platform
 
 			platform.savePlatform("saved.ser");
@@ -63,7 +65,7 @@ public class SocialMediaPlatformTestApp {
 			platform.erasePlatform();
 			platform.loadPlatform("saved.ser");
 			System.out.println("Loaded");
-			System.out.println(platform.showAccount("elliot"));
+			System.out.println(platform.showAccount("smelliot"));
 			
 
 
