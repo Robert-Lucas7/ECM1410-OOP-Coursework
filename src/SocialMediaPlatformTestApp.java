@@ -44,6 +44,7 @@ public class SocialMediaPlatformTestApp {
 			int cID = platform.commentPost("rob", id, "good comment");
 			platform.commentPost("rob", cID, "brilliant comment");
 			platform.commentPost("rob", id, "great comment");
+			platform.commentPost("elliot", 2, "bad comment");
 			//platform.deletePost(eID);
 			System.out.println(platform.showAccount("elliot"));
 			System.out.println();
@@ -52,9 +53,10 @@ public class SocialMediaPlatformTestApp {
 			//System.out.println(platform.showIndividualPost(cID));
 			System.out.println();
 			System.out.println();
+			platform.endorsePost("elliot", 5);
 			System.out.println(platform.showPostChildrenDetails(id));
 
-			/* Saving and loading platform
+			///Saving and loading platform
 
 			platform.savePlatform("saved.ser");
 			System.out.println("Saved");
@@ -62,7 +64,7 @@ public class SocialMediaPlatformTestApp {
 			platform.loadPlatform("saved.ser");
 			System.out.println("Loaded");
 			System.out.println(platform.showAccount("elliot"));
-			 */
+			
 
 
 		} catch (IllegalHandleException e) {

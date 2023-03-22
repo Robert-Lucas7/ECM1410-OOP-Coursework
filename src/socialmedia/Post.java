@@ -86,4 +86,28 @@ public class Post implements Serializable{
         }
         throw new PostIDNotRecognisedException();
     }
+    public static StringBuilder formatMessage(String message, int indentLevel, boolean isFirstComment){
+		StringBuilder sb = new StringBuilder();
+		boolean isFirstLine = true;
+		for(String line : message.split("\n")){
+			if(isFirstLine){
+				String firstLine = "";
+				if (indentLevel != 0 && isFirstComment){
+					firstLine += "    ".repeat(indentLevel-1)+ "|\n";
+				}
+				sb.append(firstLine+"    ".repeat(indentLevel-1)+"| > "+line+"\n");
+				
+				//remove tab here
+				isFirstLine = false;
+			}
+			else{
+				sb.append("    ".repeat(indentLevel)+line+"\n");
+			}
+		}
+		return sb;
+	}
+    public void removeEndorsement(EndorsementPost e){
+        endorsements.remove(e);
+        this.getAccount().setEndorsementCountUpToDateToFalse();
+    }
 }

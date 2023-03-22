@@ -11,6 +11,7 @@ class Account implements Serializable{
     private int accountID;
     private int postCount = 0;
     private int endorsementCount = 0;
+    private boolean postCountUpToDate = false;
     private boolean endorsementCountUpToDate = false;
     private final static int MAX_HANDLE_LENGTH = 30; 
 
@@ -37,7 +38,18 @@ class Account implements Serializable{
     public int getID(){
         return accountID;
     }
-    public int getPostCount(){
+    public int getOriginalPostCount(){
+        if(!postCountUpToDate){
+            
+            int total=0;
+            for(Post p:accountPosts){
+                if(!(p instanceof Comment || p instanceof EndorsementPost)){
+                    total += 1;
+                }
+            }
+            postCount = total;
+            postCountUpToDate = true;
+        }
         return postCount;
     }
     public int getEndorsementCount(){//using caching OR Lazy instantiation??
@@ -66,23 +78,17 @@ class Account implements Serializable{
     public static void resetIdCount(){
         nextID = 1;
     }
-    /*
-    public void incrementPostCount(){
-        this.postCount++;
-    }
-    public void decrementPostCount(){
-        this.postCount--;
-    }
-    */
     public void setEndorsementCountUpToDateToFalse(){
         this.endorsementCountUpToDate = false;
     }
     //other
     public void addPost(Post p){
         this.accountPosts.add(p);
+        postCountUpToDate = false;
     }
     public void removePost(Post p){
         this.accountPosts.remove(p);
+        postCountUpToDate = false;
     }
     //Validation for Handle
     public static void validateHandle(String handle, ArrayList<Account> accountList) throws InvalidHandleException, IllegalHandleException{

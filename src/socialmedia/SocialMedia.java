@@ -1,18 +1,13 @@
 package socialmedia;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.io.*;
 
 
 public class SocialMedia implements SocialMediaPlatform {
     private ArrayList<Account> accountList = new ArrayList<Account>();
-	private ArrayList<Post> postList = new ArrayList<Post>();
-	//Add number of accounts
-	//Total number of posts
 
-	//Generic empty post to replace deleted posts
-
-    
     @Override
 	public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
 		//Validate handle for both exceptions
@@ -119,7 +114,7 @@ public class SocialMedia implements SocialMediaPlatform {
 				output = 	"ID: " + a.getID() +
 							"\nHandle: " + a.getHandle() +
 							"\nDescription: " + a.getDescription() +
-							"\nPost count: " + a.getPostCount() +
+							"\nPost count: " + a.getPosts().size() +
 							"\nEndorse count: " + a.getEndorsementCount();
 				
 				accountFound = true;
@@ -182,18 +177,13 @@ public class SocialMedia implements SocialMediaPlatform {
 	public void deletePost(int id) throws PostIDNotRecognisedException {
 		Post postToDelete = Post.findPostByID(id, accountList); //throws PostIDNotRecognizedException
 		
-		
 		postToDelete.getAccount().removePost(postToDelete);
 		
-		if (!(postToDelete instanceof EndorsementPost)){
-			postToDelete.getEndorsements().removeAll(postToDelete.getEndorsements()); //By passing by reference - clears the arraylist.
-			if (!(postToDelete instanceof Comment)){ //If it is an original post, then ...
-				//postToDelete.getAccount().decrementPostCount();//This is not needed!!
-			}
+		if (postToDelete instanceof EndorsementPost){
+			((EndorsementPost)postToDelete).getReferencePost().removeEndorsement((EndorsementPost)postToDelete);
 		}
 		else{
-			postToDelete.getAccount().setEndorsementCountUpToDateToFalse();
-			((EndorsementPost)postToDelete).getReferencePost().getEndorsements().remove(postToDelete);
+			postToDelete.clearEndorsements();
 		}
 		postToDelete.setPostToEmpty();
 		
@@ -209,42 +199,23 @@ public class SocialMedia implements SocialMediaPlatform {
 		postToShow.getMessage();
 	}
 
-	private StringBuilder formatMessage(String message, int indentLevel, boolean isFirstComment){
-		StringBuilder sb = new StringBuilder();
-		boolean isFirstLine = true;
-		for(String line : message.split("\n")){
-			if(isFirstLine){
-				String firstLine = "";
-				if (indentLevel != 0 && isFirstComment){
-					firstLine += "    ".repeat(indentLevel-1)+ "|\n";
-				}
-				sb.append(firstLine+"    ".repeat(indentLevel-1)+"| > "+line+"\n");
-				
-				//remove tab here
-				isFirstLine = false;
-			}
-			else{
-				sb.append("    ".repeat(indentLevel)+line+"\n");
-			}
-		}
-		return sb;
-	}
+	
 	private StringBuilder DFSChildren(Post originalPost, Post post, int indent, StringBuilder sb, ArrayList<Post> visited) throws PostIDNotRecognisedException{
 		visited.add(post);
 
 		//Add indentation and pipes here...
 		if(post instanceof Comment){
+			boolean isFirstComment;
 			if (((Comment) post).getReferencePost().getComments().get(0).equals(post)){
-				sb.append(formatMessage(showIndividualPost(post.getID()), indent, true));
+				isFirstComment = true;
 			} else{
-				sb.append(formatMessage(showIndividualPost(post.getID()), indent, false));
+				isFirstComment = false;
 			}
-			
+			sb.append(Post.formatMessage(showIndividualPost(post.getID()), indent, isFirstComment));
 		}	
 		else{
 			sb.append(showIndividualPost(post.getID())+"\n");
 		}
-		System.out.println("Indent: "+indent+", PostID: "+post.getID());
 		indent++;
 
 		for(Comment c:post.getComments()){
@@ -266,12 +237,6 @@ public class SocialMedia implements SocialMediaPlatform {
 		if (postToShow instanceof EndorsementPost){
 			throw new NotActionablePostException();
 		}
-
-		/*sb.append(showIndividualPost(id)); 
-		for (Comment c: postToShow.getComments()){
-
-		}*/
-		//Come back to this
 		return DFSChildren(postToShow, postToShow, 0,sb,new ArrayList<Post>());
 	}
 
@@ -281,15 +246,19 @@ public class SocialMedia implements SocialMediaPlatform {
 	}
 
 	@Override
-	public int getTotalOriginalPosts() {
-		return postList.size();
+	public int getTotalOriginalPosts() { 
+		int total = 0;
+		for(Account a:accountList){
+			total += a.getOriginalPostCount();
+		}
+		return total;
 	}
 
 	@Override
 	public int getTotalEndorsmentPosts() {
 		int total = 0;
-		for(Post p : postList){
-			total += p.getEndorsements().size();
+		for(Account a:accountList){
+			total += a.getEndorsementCount();//p.getEndorsements().size();
 		}
 		return total;
 	}
@@ -297,8 +266,10 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public int getTotalCommentPosts() {
 		int total = 0;
-		for(Post p : postList){
-			total += p.getComments().size();
+		for(Account a:accountList){
+			for(Post p:a.getPosts()){
+				total += p.getComments().size();
+			}
 		}
 		return total;
 	}
@@ -306,9 +277,11 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public int getMostEndorsedPost() {
 		Post mostEndorsedPost = null;
-		for(Post p : postList){
-			if(mostEndorsedPost == null || p.getNumEndorsements() > mostEndorsedPost.getNumEndorsements()){//short-circuits so no error (Hopefully)
-				mostEndorsedPost = p;
+		for(Account a:accountList){
+			for(Post p : a.getPosts()){
+				if(mostEndorsedPost == null || p.getNumEndorsements() > mostEndorsedPost.getNumEndorsements()){//short-circuits so no error (Hopefully)
+					mostEndorsedPost = p;
+				}
 			}
 		}
 		return mostEndorsedPost.getID();
@@ -328,37 +301,22 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public void erasePlatform() {
 		accountList.clear();
-		postList.clear();
 		Post.resetIdCount();
 		Account.resetIdCount();
-
 	}
-
 	@Override
 	public void savePlatform(String filename) throws IOException {
 		try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))){
-			out.writeObject(accountList);
-			out.writeObject(postList);
+			Account[] accountArr = accountList.toArray(new Account[accountList.size()]);
+			out.writeObject(accountArr);
 		}
 	}
 
 	@Override
-
 	public void loadPlatform(String filename) throws IOException, ClassNotFoundException {
 		try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))){
-			ArrayList obj = (ArrayList) in.readObject();
-			if ((obj.size()>0) && (obj.get(0) instanceof Account)){
-				accountList = (ArrayList<Account>) obj;
-			} else {
-				throw new ClassNotFoundException();
-			}
-			
-			obj = (ArrayList) in.readObject();
-			if ((obj.size()>0) && (obj.get(0) instanceof Post)){
-				postList = (ArrayList<Post>) obj;
-			} else {
-				throw new ClassNotFoundException();
-			}
+			Account[] accountArr = (Account[])in.readObject();
+			accountList = new ArrayList<>(Arrays.asList(accountArr));
 		} 
 	}
 }
