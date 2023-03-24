@@ -38,10 +38,9 @@ class Account implements Serializable{
     }
     public int getOriginalPostCount(){
         if(!postCountUpToDate){
-            
             int total=0;
             for(Post p:accountPosts){
-                if(!(p instanceof Comment || p instanceof EndorsementPost)){
+                if(!(p instanceof Comment || p instanceof EndorsementPost || p.isEmptyPost())){
                     total += 1;
                 }
             }
@@ -82,11 +81,16 @@ class Account implements Serializable{
     //other
     public void addPost(Post p){
         this.accountPosts.add(p);
-        postCountUpToDate = false;
+        if (!(p instanceof Comment || p instanceof EndorsementPost)){
+            postCountUpToDate = false;
+        }
+        
     }
     public void removePost(Post p){
         this.accountPosts.remove(p);
-        postCountUpToDate = false;
+        if (!(p instanceof Comment || p instanceof EndorsementPost)){
+            postCountUpToDate = false;
+        }
     }
     @Override
     public String toString(){
@@ -98,7 +102,7 @@ class Account implements Serializable{
     }
     //Validation for Handle
     public static void validateHandle(String handle, ArrayList<Account> accountList) throws InvalidHandleException, IllegalHandleException{
-        if(handle.length() > MAX_HANDLE_LENGTH || handle.isEmpty() || !handle.matches("(\\S)+")){//Add check for whitespace
+        if(handle.length() > MAX_HANDLE_LENGTH || handle.isEmpty() || handle.matches("(\\s)+")){//Add check for whitespace
             throw new InvalidHandleException();
         }
         for(Account a : accountList){

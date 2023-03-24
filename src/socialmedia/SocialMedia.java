@@ -147,8 +147,10 @@ public class SocialMedia implements SocialMediaPlatform {
 	public void deletePost(int id) throws PostIDNotRecognisedException {
 		Post postToDelete = Post.findPostByID(id, accountList); //throws PostIDNotRecognizedException
 		
-		postToDelete.getAccount().removePost(postToDelete);
-		
+		//postToDelete.getAccount().removePost(postToDelete);
+		//assert (!postToDelete.getAccount().getPosts().contains(postToDelete)) : "Post is still in accounts post list";
+
+
 		if (postToDelete instanceof EndorsementPost){
 			((EndorsementPost)postToDelete).getReferencePost().removeEndorsement((EndorsementPost)postToDelete);
 		}
@@ -163,6 +165,9 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public String showIndividualPost(int id) throws PostIDNotRecognisedException {
 		Post postToShow = Post.findPostByID(id, accountList);
+		if (postToShow.isEmptyPost()){
+			return "-".repeat(postToShow.getMessage().length())+"\n"+postToShow.getMessage()+"\n"+"-".repeat(postToShow.getMessage().length())+"\n";
+		}
 		return "ID: "+ postToShow.getID() +
 		"\nAccount: "+postToShow.getAccount().getHandle() +
 		"\nNo. endorsements: "+postToShow.getNumEndorsements()+" | No. comments: "+postToShow.getNumComments()+ "\n" +
@@ -273,6 +278,7 @@ public class SocialMedia implements SocialMediaPlatform {
 		accountList.clear();
 		Post.resetIdCount();
 		Account.resetIdCount();
+		assert (accountList.size() == 0) : "Account list not empty";
 	}
 	@Override
 	public void savePlatform(String filename) throws IOException {
@@ -280,6 +286,9 @@ public class SocialMedia implements SocialMediaPlatform {
 			Account[] accountArr = accountList.toArray(new Account[accountList.size()]);
 			out.writeObject(accountArr);
 		}
+
+		File f = new File(filename);
+		assert (f.isFile()) : "File has not been created";
 	}
 
 	@Override

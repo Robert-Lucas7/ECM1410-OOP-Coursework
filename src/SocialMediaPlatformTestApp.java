@@ -31,20 +31,20 @@ public class SocialMediaPlatformTestApp {
 		assert (platform.getTotalCommentPosts() == 0) : "Innitial SocialMediaPlatform not empty as required.";
 		assert (platform.getTotalEndorsmentPosts() == 0) : "Innitial SocialMediaPlatform not empty as required.";
 
-		Integer id;
+		Integer id1;
 		try {
-			id = platform.createAccount("elliot");
+			id1 = platform.createAccount("elliot");
 			assert (platform.getNumberOfAccounts() == 1) : "number of accounts registered in the system does not match";
 
 			//platform.removeAccount(id);
 			//assert (platform.getNumberOfAccounts() == 0) : "number of accounts registered in the system does not match";
 			int robID = platform.createAccount("rob");
-			id = platform.createPost("elliot", "hello");
-			//int eID = platform.endorsePost("rob", id);
-			int cID = platform.commentPost("rob", id, "good comment");
-			platform.commentPost("rob", cID, "brilliant comment");
-			platform.commentPost("rob", id, "great comment");
-			platform.commentPost("elliot", 2, "bad comment");
+			id1 = platform.createPost("elliot", "hello");
+			int id2 = platform.endorsePost("rob", id1);
+			int id3 = platform.commentPost("rob", id1, "good comment");
+			platform.commentPost("rob", id1, "brilliant comment");
+			platform.commentPost("rob", id3, "great comment");
+			//platform.commentPost("elliot", 2, "bad comment");
 			//platform.deletePost(eID);
 			System.out.println(platform.showAccount("elliot"));
 			System.out.println();
@@ -53,19 +53,21 @@ public class SocialMediaPlatformTestApp {
 			//System.out.println(platform.showIndividualPost(cID));
 			System.out.println();
 			System.out.println();
-			platform.endorsePost("elliot", 5);
-			System.out.println(platform.showPostChildrenDetails(id));
+			//platform.endorsePost("elliot", 5);
+			platform.deletePost(id3);
+			System.out.println(platform.showPostChildrenDetails(id1));
 
-			platform.updateAccountDescription("elliot", "I'm not smelly");
-			platform.changeAccountHandle("elliot", "smelliot");
+			//platform.updateAccountDescription("elliot", "I'm not smelly");
+			//platform.changeAccountHandle("elliot", "smelliot");
 			///Saving and loading platform
-
+			/* 
 			platform.savePlatform("saved.ser");
 			System.out.println("Saved");
 			platform.erasePlatform();
 			platform.loadPlatform("saved.ser");
 			System.out.println("Loaded");
 			System.out.println(platform.showAccount("smelliot"));
+			*/
 			
 
 

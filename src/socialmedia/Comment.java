@@ -18,7 +18,7 @@ public class Comment extends Post{
     }
     
     /** This returns the post object that the comment refers to.
-     * @return Post Post that the comment refers to.
+     * @return Post that the comment refers to.
      */
     public Post getReferencePost(){
         return referencePost;
