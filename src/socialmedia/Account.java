@@ -61,6 +61,16 @@ class Account implements Serializable{
         }
         return endorsementCount;
     }
+    public int getTotalPostCount(){ //new
+        //Includes posts, comments and endorsements
+        int total = 0;
+        for (Post p : accountPosts){
+            if (!p.isEmptyPost()){
+                total+=1;
+            }
+        }
+        return total;
+    }
     public ArrayList<Post> getPosts(){
         return this.accountPosts;
     } 
@@ -77,6 +87,9 @@ class Account implements Serializable{
     }
     public void setEndorsementCountUpToDateToFalse(){
         this.endorsementCountUpToDate = false;
+    }
+    public void setPostCountUpToDateToFalse(){
+        this.postCountUpToDate = false;
     }
     //other
     public void addPost(Post p){
@@ -97,7 +110,7 @@ class Account implements Serializable{
         return	"ID: " + accountID +
                 "\nHandle: " + handle +
                 "\nDescription: " + description +
-                "\nPost count: " + accountPosts.size() +
+                "\nPost count: " + getTotalPostCount() +
                 "\nEndorse count: " + getEndorsementCount();
     }
     //Validation for Handle

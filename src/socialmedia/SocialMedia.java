@@ -151,6 +151,8 @@ public class SocialMedia implements SocialMediaPlatform {
 		}
 		else{
 			postToDelete.clearEndorsements();
+			postToDelete.getAccount().setEndorsementCountUpToDateToFalse();
+			postToDelete.getAccount().setPostCountUpToDateToFalse();
 		}
 		postToDelete.setPostToEmpty();
 		
@@ -160,14 +162,7 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public String showIndividualPost(int id) throws PostIDNotRecognisedException {
 		Post postToShow = Post.findPostByID(id, accountList);
-		//if (postToShow.isEmptyPost()){
-		//	return "-".repeat(postToShow.getMessage().length())+"\n"+postToShow.getMessage()+"\n"+"-".repeat(postToShow.getMessage().length())+"\n";
-		//}
 		return postToShow.toString();
-		/* "ID: "+ postToShow.getID() +
-		"\nAccount: "+postToShow.getAccount().getHandle() +
-		"\nNo. endorsements: "+postToShow.getNumEndorsements()+" | No. comments: "+postToShow.getNumComments()+ "\n" +
-		postToShow.getMessage();*/
 	}
 
 	
