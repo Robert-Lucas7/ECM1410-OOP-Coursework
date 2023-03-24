@@ -146,11 +146,6 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public void deletePost(int id) throws PostIDNotRecognisedException {
 		Post postToDelete = Post.findPostByID(id, accountList); //throws PostIDNotRecognizedException
-		
-		//postToDelete.getAccount().removePost(postToDelete);
-		//assert (!postToDelete.getAccount().getPosts().contains(postToDelete)) : "Post is still in accounts post list";
-
-
 		if (postToDelete instanceof EndorsementPost){
 			((EndorsementPost)postToDelete).getReferencePost().removeEndorsement((EndorsementPost)postToDelete);
 		}
@@ -165,20 +160,20 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public String showIndividualPost(int id) throws PostIDNotRecognisedException {
 		Post postToShow = Post.findPostByID(id, accountList);
-		if (postToShow.isEmptyPost()){
-			return "-".repeat(postToShow.getMessage().length())+"\n"+postToShow.getMessage()+"\n"+"-".repeat(postToShow.getMessage().length())+"\n";
-		}
-		return "ID: "+ postToShow.getID() +
+		//if (postToShow.isEmptyPost()){
+		//	return "-".repeat(postToShow.getMessage().length())+"\n"+postToShow.getMessage()+"\n"+"-".repeat(postToShow.getMessage().length())+"\n";
+		//}
+		return postToShow.toString();
+		/* "ID: "+ postToShow.getID() +
 		"\nAccount: "+postToShow.getAccount().getHandle() +
 		"\nNo. endorsements: "+postToShow.getNumEndorsements()+" | No. comments: "+postToShow.getNumComments()+ "\n" +
-		postToShow.getMessage();
+		postToShow.getMessage();*/
 	}
 
 	
 	private StringBuilder DFSChildren(Post originalPost, Post post, int indent, StringBuilder sb, ArrayList<Post> visited) throws PostIDNotRecognisedException{
 		visited.add(post);
 
-		//Add indentation and pipes here...
 		if(post instanceof Comment){
 			boolean isFirstComment;
 			if (((Comment) post).getReferencePost().getComments().get(0).equals(post)){
