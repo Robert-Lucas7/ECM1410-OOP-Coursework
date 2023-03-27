@@ -115,6 +115,10 @@ public class SocialMedia implements SocialMediaPlatform {
 			if (postToEndorse instanceof EndorsementPost){
 				throw new NotActionablePostException();
 			}
+			if (postToEndorse.isEmptyPost()){ //new
+				throw new PostIDNotRecognisedException();
+			}
+
 			String message = "EP@" + postToEndorse.getAccount().getHandle() + ": " + postToEndorse.getMessage();
 
 			int numOfEndorsements = getTotalEndorsmentPosts();
@@ -135,6 +139,9 @@ public class SocialMedia implements SocialMediaPlatform {
 		if (commentedPost instanceof EndorsementPost){
 			throw new NotActionablePostException();
 		}
+		if (commentedPost.isEmptyPost()){ //new
+			throw new PostIDNotRecognisedException();
+		}
 
 		int numOfComments = getTotalCommentPosts();
 		Comment newComment = new Comment(postingAccount, message, commentedPost);
@@ -151,8 +158,13 @@ public class SocialMedia implements SocialMediaPlatform {
 		}
 		else{
 			postToDelete.clearEndorsements();
-			postToDelete.getAccount().setEndorsementCountUpToDateToFalse();
-			postToDelete.getAccount().setPostCountUpToDateToFalse();
+			if (postToDelete.getAccount() != null){
+				postToDelete.getAccount().setEndorsementCountUpToDateToFalse(); //new
+				postToDelete.getAccount().setPostCountUpToDateToFalse(); // new
+			}
+			if (postToDelete instanceof Comment){ //new
+				((Comment) postToDelete).getReferencePost().setCommentCountUptoDateToFalse();
+			}
 		}
 		postToDelete.setPostToEmpty();
 		
@@ -162,7 +174,7 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public String showIndividualPost(int id) throws PostIDNotRecognisedException {
 		Post postToShow = Post.findPostByID(id, accountList);
-		return postToShow.toString();
+		return postToShow.toString(); //new
 	}
 
 	
@@ -233,7 +245,7 @@ public class SocialMedia implements SocialMediaPlatform {
 		int total = 0;
 		for(Account a:accountList){
 			for(Post p:a.getPosts()){
-				total += p.getComments().size();
+				total += p.getNumComments();
 			}
 		}
 		return total;
@@ -244,7 +256,7 @@ public class SocialMedia implements SocialMediaPlatform {
 		Post mostEndorsedPost = null;
 		for(Account a:accountList){
 			for(Post p : a.getPosts()){
-				if(mostEndorsedPost == null || p.getNumEndorsements() > mostEndorsedPost.getNumEndorsements()){//short-circuits so no error (Hopefully)
+				if(mostEndorsedPost == null || p.getNumEndorsements() > mostEndorsedPost.getNumEndorsements()){
 					mostEndorsedPost = p;
 				}
 			}

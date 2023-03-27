@@ -2,6 +2,8 @@ package socialmedia;
 
 import  java.util.ArrayList;
 
+import javax.sound.midi.SysexMessage;
+
 import java.io.Serializable;
 
 public class Post implements Serializable{
@@ -67,6 +69,12 @@ public class Post implements Serializable{
             commentCountUptoDate = true;
         }
         return commentCount;
+    }
+    /**
+     * Sets the commentCoutUpToDate varaible to false
+     */
+    public void setCommentCountUptoDateToFalse(){ //new
+        commentCountUptoDate = false;
     }
     /**
      * Returns the total number of endorsement about the post
@@ -244,7 +252,7 @@ public class Post implements Serializable{
      * </pre>
      * @return String of information about the post
      */
-    public String toString(){
+    public String toString(){ //new
         if (isEmptyPost){
             return "-".repeat(message.length())+"\n"+message+"\n"+"-".repeat(message.length())+"\n";
         }

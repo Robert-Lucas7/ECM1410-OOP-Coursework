@@ -94,7 +94,7 @@ class Account implements Serializable{
      * Returns the number of posts made by the account.
      * @return The number of posts made by the account.
      */
-    public int getTotalPostCount(){ //new
+    public int getTotalPostCount(){ 
         //Includes posts, comments and endorsements
         int total = 0;
         for (Post p : accountPosts){
