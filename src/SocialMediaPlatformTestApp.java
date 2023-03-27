@@ -49,6 +49,8 @@ public class SocialMediaPlatformTestApp {
 			int id3 = platform.commentPost("rob", id1, "good comment");
 			int id4 = platform.commentPost("rob", id1, "brilliant comment");
 			int id5 = platform.commentPost("rob", id3, "great comment");
+			int id10 = platform.commentPost("rob", id1, "some comment");
+
 
 			int id2 = platform.endorsePost("rob", id1);
 			int id7 = platform.endorsePost("rob", id1);
@@ -67,9 +69,22 @@ public class SocialMediaPlatformTestApp {
 			//platform.deletePost(id7);
 
 			//platform.endorsePost("elliot", 5);
-			//platform.deletePost(id3);
-			platform.removeAccount("elliot");
-			System.out.println(platform.showPostChildrenDetails(id1));
+			//platform.deletePost(id1);
+			//platform.removeAccount("elliot");
+			
+			platform.savePlatform("saved.ser");
+			System.out.println("Saved");
+			platform.erasePlatform();
+			platform.loadPlatform("saved.ser");
+			System.out.println("Loaded");
+			
+			platform.createAccount("smelliot");
+			id1 = platform.createPost("smelliot", "first" );
+			System.out.println(platform.showAccount("smelliot"));
+			System.out.println(platform.showIndividualPost(id1));
+
+
+			//System.out.println(platform.showPostChildrenDetails(id1));
 			//System.out.println(platform.showIndividualPost(id1));
 			System.out.println();
 			System.out.println();

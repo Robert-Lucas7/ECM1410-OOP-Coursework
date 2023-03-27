@@ -7,11 +7,11 @@ import java.io.*;
 
 public class SocialMedia implements SocialMediaPlatform {
     private ArrayList<Account> accountList = new ArrayList<Account>();
+	private ArrayList<Post> emptyPostList = new ArrayList<Post>();
 
     @Override
 	public int createAccount(String handle) throws IllegalHandleException, InvalidHandleException {
-		//Validate handle for both exceptions
-        Account.validateHandle(handle, accountList); //throws InvalidHandleException and IllegalHandleException
+        Account.validateHandle(handle, accountList); 
         Account newAccount = new Account(handle);
 		int numOfAccounts = getNumberOfAccounts();
         accountList.add(newAccount);
@@ -21,7 +21,7 @@ public class SocialMedia implements SocialMediaPlatform {
 
 	@Override
 	public int createAccount(String handle, String description) throws IllegalHandleException, InvalidHandleException {
-		Account.validateHandle(handle, accountList); //throws InvalidHandleException and IllegalHandleException
+		Account.validateHandle(handle, accountList); 
 		Account newAccount = new Account(handle, description);
 		int numOfAccounts = getNumberOfAccounts();
         accountList.add(newAccount);
@@ -33,48 +33,31 @@ public class SocialMedia implements SocialMediaPlatform {
 	public void removeAccount(int id) throws AccountIDNotRecognisedException {
 		Account accountToDelete = Account.findAccountById(id, accountList);
 		int numOfAccounts = getNumberOfAccounts();
-		for (Post p: accountToDelete.getPosts()){
-			//Remove posts
+		while (accountToDelete.getPosts().size()>0){ // Deletes all posts from the account
 			try{
+				Post p = accountToDelete.getPosts().get(0);
 				deletePost(p.getID());
 			} catch(PostIDNotRecognisedException e){
 				continue;
 			}
 		}
-		for(Account a: accountList){
-			for(Post p : a.getPosts()){
-				if(p instanceof Comment){
-					Comment c = (Comment)p;
-					if(accountToDelete.getPosts().contains(c.getReferencePost())){//if a comment is referencing a post that belongs to the accountToBeRemoved, then it should be removed/deleted.
-						try {
-							deletePost(c.getID());
-						} catch (PostIDNotRecognisedException e){
-							continue;
-						}
-					}
-				}
-			}
-		}
-		//Remove from account list
 		accountList.remove(accountToDelete);
 		assert (numOfAccounts - 1 == getNumberOfAccounts()) : "Number of accounts has not decreased.";
 	}
 
 	@Override
 	public void removeAccount(String handle) throws HandleNotRecognisedException {
-		Account accountToDelete = Account.findAccountByHandle(handle, accountList);//Throws HandleNotRecognised exception
+		Account accountToDelete = Account.findAccountByHandle(handle, accountList);
 		try{
 			removeAccount(accountToDelete.getID());
-		} catch (AccountIDNotRecognisedException e){//HOW SHOULD THIS BE HANDLED?
-			//This will never execute, as if the account doesn
+		} catch (AccountIDNotRecognisedException e){
+
 		}
 	}
 
 	@Override
 	public void changeAccountHandle(String oldHandle, String newHandle)
 			throws HandleNotRecognisedException, IllegalHandleException, InvalidHandleException {
-		
-		//Validate handle for both exceptions
         Account.validateHandle(newHandle, accountList);
 		Account account = Account.findAccountByHandle(oldHandle, accountList);
 		account.setHandle(newHandle);
@@ -97,8 +80,8 @@ public class SocialMedia implements SocialMediaPlatform {
 
 	@Override
 	public int createPost(String handle, String message) throws HandleNotRecognisedException, InvalidPostException {
-		Account postingAccount = Account.findAccountByHandle(handle, accountList); //finds account, throws HandleNotRecognised
-		Post.validateMessage(message); //Checks message and throws up InvalidPostException
+		Account postingAccount = Account.findAccountByHandle(handle, accountList); 
+		Post.validateMessage(message); 
 		Post newPost = new Post(postingAccount, message);
 		int numOfAccountPosts = postingAccount.getPosts().size();
 		postingAccount.addPost(newPost);
@@ -110,17 +93,13 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public int endorsePost(String handle, int id)
 			throws HandleNotRecognisedException, PostIDNotRecognisedException, NotActionablePostException {
-			Account postingAccount = Account.findAccountByHandle(handle, accountList); //throws HandleNotRecognisedException
-			Post postToEndorse = Post.findPostByID(id, accountList); //throws PostIDNotRecognizedException
-			if (postToEndorse instanceof EndorsementPost){
+			Account postingAccount = Account.findAccountByHandle(handle, accountList);
+			Post postToEndorse = Post.findPostByID(id, accountList); 
+			if (postToEndorse instanceof EndorsementPost){ // Cannot endorse an endorsement post
 				throw new NotActionablePostException();
-			}
-			if (postToEndorse.isEmptyPost()){ //new
-				throw new PostIDNotRecognisedException();
 			}
 
 			String message = "EP@" + postToEndorse.getAccount().getHandle() + ": " + postToEndorse.getMessage();
-
 			int numOfEndorsements = getTotalEndorsmentPosts();
 			EndorsementPost endorsementPost = new EndorsementPost(postingAccount, message, postToEndorse);
 			assert (postToEndorse.getEndorsements().contains(endorsementPost)):"Endorsement post not added to list of endorsements.";
@@ -132,15 +111,12 @@ public class SocialMedia implements SocialMediaPlatform {
 	public int commentPost(String handle, int id, String message) throws HandleNotRecognisedException,
 			PostIDNotRecognisedException, NotActionablePostException, InvalidPostException {
 
-		Account postingAccount = Account.findAccountByHandle(handle, accountList); //throws HandleNotRecognisedException
-		Post commentedPost = Post.findPostByID(id, accountList); //throws PostIDNotRecognizedException
-		Post.validateMessage(message); //throws InvalidPostException
+		Account postingAccount = Account.findAccountByHandle(handle, accountList); 
+		Post commentedPost = Post.findPostByID(id, accountList); 
+		Post.validateMessage(message); 
 
-		if (commentedPost instanceof EndorsementPost){
+		if (commentedPost instanceof EndorsementPost){ //Cannot comment on an endorsement post
 			throw new NotActionablePostException();
-		}
-		if (commentedPost.isEmptyPost()){ //new
-			throw new PostIDNotRecognisedException();
 		}
 
 		int numOfComments = getTotalCommentPosts();
@@ -152,52 +128,49 @@ public class SocialMedia implements SocialMediaPlatform {
 
 	@Override
 	public void deletePost(int id) throws PostIDNotRecognisedException {
-		Post postToDelete = Post.findPostByID(id, accountList); //throws PostIDNotRecognizedException
-		if (postToDelete instanceof EndorsementPost){
+		Post postToDelete = Post.findPostByID(id, accountList); 
+		if (postToDelete instanceof EndorsementPost){ //Removes the endorsement from the post that is endorsed
 			((EndorsementPost)postToDelete).getReferencePost().removeEndorsement((EndorsementPost)postToDelete);
 		}
 		else{
 			postToDelete.clearEndorsements();
-			if (postToDelete.getAccount() != null){
-				postToDelete.getAccount().setEndorsementCountUpToDateToFalse(); //new
-				postToDelete.getAccount().setPostCountUpToDateToFalse(); // new
-			}
-			if (postToDelete instanceof Comment){ //new
-				((Comment) postToDelete).getReferencePost().setCommentCountUptoDateToFalse();
+			if (!(postToDelete instanceof Comment)){ // If post is an original post, account post count must be recalculated
+				postToDelete.getAccount().setPostCountUpToDateToFalse();
 			}
 		}
+		postToDelete.getAccount().setEndorsementCountUpToDateToFalse();
+		postToDelete.getAccount().removePost(postToDelete);
 		postToDelete.setPostToEmpty();
-		
+		emptyPostList.add(postToDelete);
 		
 	}
 
 	@Override
 	public String showIndividualPost(int id) throws PostIDNotRecognisedException {
-		Post postToShow = Post.findPostByID(id, accountList);
-		return postToShow.toString(); //new
+		Post postToShow = Post.findPostByID(id, accountList, emptyPostList);
+		return postToShow.toString();
 	}
 
 	
 	private StringBuilder DFSChildren(Post originalPost, Post post, int indent, StringBuilder sb, ArrayList<Post> visited) throws PostIDNotRecognisedException{
-		visited.add(post);
+		visited.add(post); // List of posts that have been visited by search
 
-		if(post instanceof Comment){
+		if(post instanceof Comment){ 
 			boolean isFirstComment;
-			if (((Comment) post).getReferencePost().getComments().get(0).equals(post)){
+			if (((Comment) post).getReferencePost().getComments().get(0).equals(post)){ //Checks whether post is the first comment under a post
 				isFirstComment = true;
 			} else{
 				isFirstComment = false;
 			}
 			sb.append(Post.formatMessage(showIndividualPost(post.getID()), indent, isFirstComment));
 		}	
-		else{
+		else{ //Post is an original post
 			sb.append(showIndividualPost(post.getID())+"\n");
 		}
 		indent++;
 
-		for(Comment c:post.getComments()){
-			if(!visited.contains(c)){//upcasting
-				
+		for(Comment c:post.getComments()){ //Recursively calls on all comments under the current post
+			if(!visited.contains(c)){
 				DFSChildren(originalPost, c, indent, sb, visited);
 			}
 		}
@@ -209,12 +182,12 @@ public class SocialMedia implements SocialMediaPlatform {
 	public StringBuilder showPostChildrenDetails(int id)
 			throws PostIDNotRecognisedException, NotActionablePostException {
 		StringBuilder sb = new StringBuilder();
-		Post postToShow = Post.findPostByID(id, accountList);
+		Post postToShow = Post.findPostByID(id, accountList, emptyPostList);
 
-		if (postToShow instanceof EndorsementPost){
+		if (postToShow instanceof EndorsementPost){ //Cannot call method on endorsement posts
 			throw new NotActionablePostException();
 		}
-		return DFSChildren(postToShow, postToShow, 0,sb,new ArrayList<Post>());
+		return DFSChildren(postToShow, postToShow, 0,sb,new ArrayList<Post>()); //recursively visits all comments under original post
 	}
 
 	@Override
@@ -235,7 +208,7 @@ public class SocialMedia implements SocialMediaPlatform {
 	public int getTotalEndorsmentPosts() {
 		int total = 0;
 		for(Account a:accountList){
-			total += a.getEndorsementCount();//p.getEndorsements().size();
+			total += a.getEndorsementCount();
 		}
 		return total;
 	}
@@ -245,7 +218,7 @@ public class SocialMedia implements SocialMediaPlatform {
 		int total = 0;
 		for(Account a:accountList){
 			for(Post p:a.getPosts()){
-				total += p.getNumComments();
+				total += p.getComments().size();
 			}
 		}
 		return total;
@@ -261,6 +234,9 @@ public class SocialMedia implements SocialMediaPlatform {
 				}
 			}
 		}
+		if (mostEndorsedPost == null){ // If there are no posts on the platform
+			return 0;
+		}
 		return mostEndorsedPost.getID();
 	}
 
@@ -272,12 +248,16 @@ public class SocialMedia implements SocialMediaPlatform {
 				mostEndorsedAccount = a;
 			}
 		}
+		if (mostEndorsedAccount == null){ // If there are no accounts on the platform
+			return 0;
+		}
 		return mostEndorsedAccount.getID();
 	}
 
 	@Override
 	public void erasePlatform() {
 		accountList.clear();
+		emptyPostList.clear();
 		Post.resetIdCount();
 		Account.resetIdCount();
 		assert (accountList.size() == 0) : "Account list not empty";
@@ -285,8 +265,15 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public void savePlatform(String filename) throws IOException {
 		try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))){
-			Account[] accountArr = accountList.toArray(new Account[accountList.size()]);
+			Account[] accountArr = accountList.toArray(new Account[accountList.size()]); //Create an array of accountList
 			out.writeObject(accountArr);
+			Post[] emptyPostArr = emptyPostList.toArray(new Post[emptyPostList.size()]); //Create an array of emptyPostList
+			out.writeObject(emptyPostArr);
+			
+			int nextAccountID = Account.getNextId(); // Saves account ID counters' value
+			out.writeObject(nextAccountID);
+			int nextPostID = Post.getNextId(); // Saves post ID counters' value
+			out.writeObject(nextPostID);
 		}
 
 		File f = new File(filename);
@@ -296,8 +283,19 @@ public class SocialMedia implements SocialMediaPlatform {
 	@Override
 	public void loadPlatform(String filename) throws IOException, ClassNotFoundException {
 		try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))){
-			Account[] accountArr = (Account[])in.readObject();
-			accountList = new ArrayList<>(Arrays.asList(accountArr));
+			Account[] accountArr = (Account[])in.readObject(); // Read as Array
+			accountList = new ArrayList<>(Arrays.asList(accountArr)); // Cast to ArrayList
+
+			Post[] emptyPostArr = (Post[])in.readObject();
+			emptyPostList = new ArrayList<>(Arrays.asList(emptyPostArr));
+			
+			int nextAccountID = (int)in.readObject();
+			Account.setNextId(nextAccountID);
+			
+			int nextPostID = (int)in.readObject();
+			Post.setNextId(nextPostID);
+			
+
 		} 
 	}
 }

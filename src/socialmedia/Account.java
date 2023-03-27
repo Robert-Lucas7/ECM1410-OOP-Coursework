@@ -5,17 +5,17 @@ import java.util.ArrayList;
 import java.io.Serializable;
 
 class Account implements Serializable{
-    private static int nextID = 1;
+    private static int nextID = 1; //ID assigned to next account to be created
     private String handle;
     private String description;
     private int accountID;
-    private int postCount = 0;
-    private int endorsementCount = 0;
+    private int postCount = 0; // Number of original posts posted by the account
+    private int endorsementCount = 0; //Number of endorsements refering to a post posted by this account
     private boolean postCountUpToDate = false;
     private boolean endorsementCountUpToDate = false;
     private final static int MAX_HANDLE_LENGTH = 30; 
 
-    private ArrayList<Post> accountPosts = new ArrayList<Post>();//All posts - original, comments, endorsements.
+    private ArrayList<Post> accountPosts = new ArrayList<Post>();//All posts posted by the account (original, comments and endorsements)
     
     /**
      * Creates an instance of an Account object and calls the overloaded constructor with the handle and an empty description.
@@ -65,11 +65,11 @@ class Account implements Serializable{
         if(!postCountUpToDate){
             int total=0;
             for(Post p:accountPosts){
-                if(!(p instanceof Comment || p instanceof EndorsementPost || p.isEmptyPost())){
+                if(!(p instanceof Comment || p instanceof EndorsementPost)){
                     total += 1;
                 }
             }
-            postCount = total;
+            postCount = total; // cache the calculated value
             postCountUpToDate = true;
         }
         return postCount;
@@ -80,35 +80,47 @@ class Account implements Serializable{
      */
     public int getEndorsementCount(){
         if(!endorsementCountUpToDate){
-            //count the number of endorsements
             int total = 0;
             for(Post p:accountPosts){
                 total += p.getNumEndorsements();
             }
-            endorsementCount = total;
+            endorsementCount = total; // Cache the calculated value
             endorsementCountUpToDate = true;
         }
         return endorsementCount;
     }
     /**
-     * Returns the number of posts made by the account.
+     * Returns the number of posts made by the account. This includes original posts, comments and endorsements
      * @return The number of posts made by the account.
      */
     public int getTotalPostCount(){ 
-        //Includes posts, comments and endorsements
-        int total = 0;
-        for (Post p : accountPosts){
-            if (!p.isEmptyPost()){
-                total+=1;
-            }
-        }
-        return total;
+        return accountPosts.size();
     }
+    /**
+     * Returns the ArrayList accountPosts which contains all of the posts created by the account. This includes
+     * original posts, comments and endorsements.
+     * @return ArrayList of posts created by the account
+     */
     public ArrayList<Post> getPosts(){
-        return this.accountPosts;
+        return accountPosts;
     } 
+    /**
+     * Returns the next sequential ID that will be assigned to the next account to be created
+     * @return ID to be used by the next account to be created
+     */
+    public static int getNextId(){
+        return nextID;
+    }
     
     //Setters
+    /**
+     * Sets the next sequential ID, that will be assinged to the next account to be created, to the value
+     * passed in
+     * @param id The value to assign to nextID
+     */
+    public static void setNextId(int id){
+        nextID=id;
+    }
     /**
      * Sets the handle of the account to a new value.
      * @param newHandle The value to change the handle of the account to.
@@ -136,35 +148,47 @@ class Account implements Serializable{
     public void setEndorsementCountUpToDateToFalse(){
         this.endorsementCountUpToDate = false;
     }
+    /**
+     * Sets the boolean value of postCountUpToDate to false. postCountUpToDate states whether the count of original posts
+     * is up to date.
+     */
     public void setPostCountUpToDateToFalse(){
         this.postCountUpToDate = false;
     }
-    //other
     /**
      * Adds a post to the list of posts that the account has made.
      * @param p The post to be added to the list of posts that the account has made.
      */
     public void addPost(Post p){
         this.accountPosts.add(p);
-        if (!(p instanceof Comment || p instanceof EndorsementPost)){
+        if (!(p instanceof Comment || p instanceof EndorsementPost)){ //If post is original post
             postCountUpToDate = false;
         }
         
     }
-    //================================================== I DONT THINK THIS METHOD IS NEEDED ANYMORE ================================================================================
     /**
      * Removes the post (specified by parameter p) from the list of posts that the account has made.
      * @param p The post to be removed from the list of posts that the account has made.
      */
     public void removePost(Post p){
         this.accountPosts.remove(p);
-        if (!(p instanceof Comment || p instanceof EndorsementPost)){
+        if (!(p instanceof Comment || p instanceof EndorsementPost)){ // If post is original post
             postCountUpToDate = false;
         }
     }
-    //===================================================================================================================================
+
     /**
-     * Returns the account object represented as a String.
+     * Returns a string that contains information about an account including its unique account ID, the handle
+     * of the account, the description of the account, the number of posts the account has created (original posts, 
+     * comments and endorsements) and the number of endorsement posts that refer to a post created by this account
+     * 
+     * <pre>
+     * ID: 1
+     * Handle: user1
+     * Description: This is my description
+     * Post count: 1
+     * Endorse count: 1
+     * </pre>
      */
     @Override
     public String toString(){
@@ -174,19 +198,19 @@ class Account implements Serializable{
                 "\nPost count: " + getTotalPostCount() +
                 "\nEndorse count: " + getEndorsementCount();
     }
-    //Validation for Handle
     /**
-     * Validates a string to be used as the handle of an account.
+     * Validates a string to be used as the handle of an account by checking that it is less than 30 characters, not empty, contains 
+     * no white space and is not being used by any other account in the system.
      * @param handle The string to be used as the handle of an account.
      * @param accountList An ArrayList of account objects.
      * @throws InvalidHandleException This is thrown when the handle is more than 30 characters, or is an empty string, or contains any whitespace.
      * @throws IllegalHandleException This is thrown when an account already contains the handle defined in the parameter handle.
      */
     public static void validateHandle(String handle, ArrayList<Account> accountList) throws InvalidHandleException, IllegalHandleException{
-        if(handle.length() > MAX_HANDLE_LENGTH || handle.isEmpty() || handle.matches("(\\s)+")){//Add check for whitespace
+        if(handle.length() > MAX_HANDLE_LENGTH || handle.isEmpty() || handle.matches("(\\s)+")){ //Checks string is not empty, less than 30 characters and contains no whitespace
             throw new InvalidHandleException();
         }
-        for(Account a : accountList){
+        for(Account a : accountList){ // Checks if any account already owns this handle
             if(a.getHandle().equals(handle)){
                 throw new IllegalHandleException();
             }
