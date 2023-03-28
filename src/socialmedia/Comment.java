@@ -1,6 +1,12 @@
 package socialmedia;
 
+/**
+ * Represents a comment post on the platform.
+ */
 public class Comment extends Post{
+    /**
+     * The post object that the comment is under.
+     */
     private Post referencePost;
 
     /**

@@ -4,9 +4,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.io.*;
 
-
+/**
+ * Implementor of the SocialMediaPlatform interface.
+ */
 public class SocialMedia implements SocialMediaPlatform {
+	/**
+	 * The list of accounts on the platform.
+	 */
     private ArrayList<Account> accountList = new ArrayList<Account>();
+	/**
+	 * The list of generic empty posts on the platform.
+	 */
 	private ArrayList<Post> emptyPostList = new ArrayList<Post>();
 
     @Override

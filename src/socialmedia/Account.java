@@ -4,18 +4,50 @@ import java.util.ArrayList;
 
 import java.io.Serializable;
 
+/**
+ * Represents an account on the platform.
+ */
 public class Account implements Serializable{
-    private static int nextID = 1; //ID assigned to next account to be created
+    /**
+     * ID assigned to next account to be created
+     */
+    private static int nextID = 1;
+    /**
+     * The handle associated with the account
+     */
     private String handle;
+    /**
+     * The description associated with the account 
+     */
     private String description;
+    /**
+     * The unique integer ID associated with the account
+     */
     private int accountID;
-    private int postCount = 0; // Number of original posts posted by the account
-    private int endorsementCount = 0; //Number of endorsements refering to a post posted by this account
+    /**
+     * Number of original posts posted by the account
+     */
+    private int postCount = 0;
+    /**
+     * Number of endorsements refering to a post posted by this account
+     * */
+    private int endorsementCount = 0;
+    /**
+     * A flag to indicate whether the postCount attribute is up to date or should be recalculated
+     */
     private boolean postCountUpToDate = false;
+    /**
+     * A flag to indicate whether the endorsement attribute is up to date or should be recalculated
+     */
     private boolean endorsementCountUpToDate = false;
+    /**
+     * A constant thats value indicates the maximum number of characters a handle can be
+     */
     private final static int MAX_HANDLE_LENGTH = 30; 
-
-    private ArrayList<Post> accountPosts = new ArrayList<Post>();//All posts posted by the account (original, comments and endorsements)
+    /**
+     * All posts posted by the account (original, comments and endorsements).
+     */
+    private ArrayList<Post> accountPosts = new ArrayList<Post>();
     
     /**
      * Creates an instance of an Account object and calls the overloaded constructor with the handle and an empty description.

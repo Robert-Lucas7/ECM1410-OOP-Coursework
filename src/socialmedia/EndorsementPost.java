@@ -1,7 +1,12 @@
 package socialmedia;
-
+/**
+ * Represents an endorsement post on the platform.
+ */
 public class EndorsementPost extends Post{
 
+    /**
+     * The post object that the endorsement post is endorsing.
+     */
     private Post referencePost;
     /**
      * Creates an instance of a EndorsementPost object, by first calling the post

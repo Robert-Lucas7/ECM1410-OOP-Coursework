@@ -4,15 +4,45 @@ import  java.util.ArrayList;
 
 import java.io.Serializable;
 
+/**
+ * Represents a post on the platform.
+ */
 public class Post implements Serializable{
+    /**
+     * ID assigned to next post to be created
+     */
     protected static int nextID = 1;
+    /**
+     * The account that is making the post.
+     */
     protected Account account;
+    /**
+     * The unique integer ID associated with the post.
+     */
     protected int postID;
+    /**
+     * The text that is associated with the post.
+     */
     protected String message;
+    /**
+     * The list of comments that refer to this post.
+     */
     protected ArrayList<Comment> comments = new ArrayList<Comment>();
-    protected ArrayList<EndorsementPost> endorsements = new ArrayList<EndorsementPost>(); //posts endorsing this instance of a post.
+    /**
+     * The list of endorsements that are about this post.
+     */
+    protected ArrayList<EndorsementPost> endorsements = new ArrayList<EndorsementPost>();
+    /**
+     * A flag to indicate whether this post is a generic empty post.
+     */
     protected boolean isEmptyPost;
+    /**
+     * The number of comments on this post.
+     */
     protected int commentCount;
+    /**
+     * A flag to indicate whether the commentCount attribute is up to date.
+     */
     protected boolean commentCountUptoDate;
 
     /**
