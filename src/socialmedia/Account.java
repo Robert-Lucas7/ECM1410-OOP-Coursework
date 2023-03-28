@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import java.io.Serializable;
 
-class Account implements Serializable{
+public class Account implements Serializable{
     private static int nextID = 1; //ID assigned to next account to be created
     private String handle;
     private String description;
